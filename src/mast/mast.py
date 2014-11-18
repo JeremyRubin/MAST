@@ -46,25 +46,42 @@ class __Content__():
     allowed_type = set([Mast, str])
     def __init__(self, raw, mode):
         self.mode = mode
-        if not any(map(lambda x: isInstance(raw, x), allowed_type)):
+        if not any(map(lambda x: isinstance(raw, x), __Content__.allowed_type)):
             raise ValueError("Cannot have content of this type")
-        if mode == "compile" and isIntance(raw, str) and not self.syntax_check(raw):
-            raise SyntaxError("Invalid syntax for content: %s"%raw)
         if mode == "compile":
-            self._raw = raw #TODO: Syntax checking
-            self.hash = _hash(raw)   #TODO: syntax check content
+            if isinstance(raw, str):
+                if not self.syntax_check(raw):
+                    raise SyntaxError("Invalid syntax for content: %s"%raw)
+                self.compiled = compile(raw, '', 'exec')
+            else:
+                self.compiled = None
+            self._raw = raw
+            self._hash = crypto._hash(raw)
         if mode == "run":
             self._raw = None
-            self.hash = raw
-    #TODO: Make this real
-    def verify(s):
-        if self._raw == None and crypto.verify(s, self.hash):
+            self._hash = raw
+    def verifyAdd(self, s):
+        if self._raw == None and crypto.verify(s, self._hash):
+            self.compiled = compile(s, '', 'exec')
             self._raw = s
-         #   return s #TODO: Maybe not?
-        #else:
-         #   raise ValueError("Verification failed, string '%s' did not match hash %s"%(s, self.hash) # TODO: What here?
-    def exec():
-        if self._raw:
-            pass #TODO: Exec raw
+            return self
+        else:
+            raise ValueError("Verification failed, string '%s' did not match hash %s"%(s, self._hash))
+    def execute(self, state):
+        if self.compiled:
+            exec(self.compiled)
     def syntax_check(self, s):
         return True
+    def hash(self):
+        return self._hash
+if __name__ == "__main__":
+    state = {'1':10}
+    __Content__("print state['1']\nstate[10] = 100\n", 'compile').execute(state)
+    print state
+    __Content__(crypto._hash("state[100] = 10"), 'run').verifyAdd("state[100] = 10").execute(state)
+    print state
+    try:
+        __Content__("Fail", 'run').verifyAdd("state[100] = 10").execute(state)
+        raise Exception("Should have failed to verifyAdd")
+    except ValueError:
+        print "verifyAdd as planned!"

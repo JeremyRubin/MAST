@@ -16,7 +16,7 @@ class Mast():
         self.leaf = leaf
 
     #TODO: return new node
-    def addBr(self, content, hash=None, leaf=False):
+    def addBr(self, content, leaf=False):
         newBr = Mast(self.mode, content, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf)    #create new mast
         if self.leaf:
             raise ValueError("Leaf node cannot have children")
@@ -25,10 +25,23 @@ class Mast():
             self.children.append(newBr)
         else:
             raise ValueError("Illegal content type: %s"%str(content))
-        if self.mode == "compile":
-            compile(newBr, '', 'exec')
         return newBr
 
+    #given string code and all children, build branches 
+    #and decide which to traverse on
+    def execBr(self, hash):
+        if self.mode != "run":
+            raise ValueError("Illegal mode: %s")
+        else:   #TODO: execute down a given branch(from client side only)
+            pass
+
+    #Move this to its own iterator
+    def initTraversal(self):
+        pass    #store some current branch, can move this to a separate class
+
+    #given current branch, return next branch(or all its children?)
+    def getNextBr(self, content):
+        pass
 
     #TODO: make this pretty
     def __str__(self):

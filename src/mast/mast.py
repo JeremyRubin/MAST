@@ -12,24 +12,23 @@ class Mast():
         self.honest = honest
         self.addNonces = addNonces
         self.debug = debug
-        self.children = set()
+        self.children = []  #TODO: make this a tree!
         self.leaf = leaf
 
     #TODO: return new node
     def addBr(self, content, hash=None, leaf=False):
-        newBr = None    #create new mast
+        newBr = Mast(self.mode, content, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf)    #create new mast
         if self.mode == "compile":
             if self.leaf:
                 raise ValueError("Leaf node cannot have children")
-            if isInstance(content.raw, Mast):
-                pass    #TODO
-            elif isInstance(content.raw, str):
-                pass    #TODO
+            if isInstance(content.raw, Mast) or isInstance(content.raw, str):
+                newBr.parent = self
+                self.children.append(newBr)
             else:
                 raise ValueError("Illegal content type: %s"%str(content))
             return newBr
 
-        else:   #TODO: All different    
+        else:   #TODO: What is does run mode do   
             return newBr
 
     #TODO: make this pretty

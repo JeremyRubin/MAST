@@ -18,18 +18,17 @@ class Mast():
     #TODO: return new node
     def addBr(self, content, hash=None, leaf=False):
         newBr = Mast(self.mode, content, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf)    #create new mast
+        if self.leaf:
+            raise ValueError("Leaf node cannot have children")
+        if isInstance(content.raw, Mast) or isInstance(content.raw, str):
+            newBr.parent = self
+            self.children.append(newBr)
+        else:
+            raise ValueError("Illegal content type: %s"%str(content))
         if self.mode == "compile":
-            if self.leaf:
-                raise ValueError("Leaf node cannot have children")
-            if isInstance(content.raw, Mast) or isInstance(content.raw, str):
-                newBr.parent = self
-                self.children.append(newBr)
-            else:
-                raise ValueError("Illegal content type: %s"%str(content))
-            return newBr
+            compile(newBr, '', 'exec')
+        return newBr
 
-        else:   #TODO: What is does run mode do   
-            return newBr
 
     #TODO: make this pretty
     def __str__(self):

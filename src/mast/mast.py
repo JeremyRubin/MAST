@@ -54,18 +54,21 @@ class __Content__():
                 self.compiled = compile(raw, '', 'exec')
             else:
                 self.compiled = None
-            self._raw = raw
+            self.code = raw
             self._hash = crypto._hash(raw)
         if mode == "run":
-            self._raw = None
+            self.code = None
             self._hash = raw
     def verifyAdd(self, s):
-        if self._raw == None and crypto.verify(s, self._hash):
-            self.compiled = compile(s, '', 'exec')
-            self._raw = s
-            return self
+        if self.code == None:
+            if crypto.verify(s, self._hash):
+                self.compiled = compile(s, '', 'exec')
+                self.code = s
+                return self
+            else:
+                raise ValueError("Verification failed, string '%s' did not match hash %s"%(s, self._hash))
         else:
-            raise ValueError("Verification failed, string '%s' did not match hash %s"%(s, self._hash))
+            raise Exception("Code already loaded into object")
     def execute(self, state):
         if self.compiled:
             exec(self.compiled)

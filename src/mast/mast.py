@@ -2,7 +2,7 @@ from crypto import *
 import crypto
 class Mast():
 
-    def __init__(self, mode, content, parent=None, honest=True, addNonces=True, debug=True, leaf=False):
+    def __init__(self, mode, content, parent=None, honest=True, addNonces=False, debug=True, leaf=False):
         modes = ["run","compile"]
         if mode not in modes:
             raise ValueError("Mode not in %s "%modes)
@@ -17,15 +17,22 @@ class Mast():
 
     #TODO: return new node
     def addBr(self, content, leaf=False):
-        newBr = Mast(self.mode, content, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf)    #create new mast
         if self.leaf:
             raise ValueError("Leaf node cannot have children")
-        if isInstance(content.raw, Mast) or isInstance(content.raw, str):
-            newBr.parent = self
-            self.children.append(newBr)
-        else:
-            raise ValueError("Illegal content type: %s"%str(content))
+        newBr = Mast(self.mode, content, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf)    #create new mast
+        self.children.append(newBr)
         return newBr
+
+    def hash(self):
+        child_hash = [child.hash() for child in children]
+        while child_hash:
+            c1 = child_hash.pop(0)
+            if child_hash:
+                c2 = child_hash.pop(0)
+                root = crypto.hash(c1+c2)
+                child_hash.append(root)
+            else:
+                return crypto.hash(self.content.hash()+c1)
 
     #given string code and all children, build branches 
     #and decide which to traverse on
@@ -45,7 +52,7 @@ class Mast():
 
     #TODO: make this pretty
     def __str__(self):
-        pass
+        return "%s\nChildren:\n%s"%(str(self.content),"\n\n".join(map(lambda x: "\n    ".join(("    "+str(x)).split('\n')), self.children)))
 
     #TODO: this will be moved
     def construct(self, port=8000, host="localhost"):
@@ -53,7 +60,32 @@ class Mast():
             pass    #TODO
         else:
             pass    #TODO
+class __IO__():
+    def __init__(self):
+        self.stack = []
+        self.returnstack = []
+        self.heap = {}
+    def push(self, x):
+        self.stack.append(x)
+    def pop(self):
+        return self.stack.pop()
+    def setReturn(self, x):
+        self.returnstack.push(x)
+    def getReturn(self):
+        return self.returnstack.pop()
+    def __str__(self):
+        return """
+        Stack (Top->Bottom): %s
+        Heap: %s
+        """%(", ".join(str(x) for x in self.stack[::-1]), self.heap)
+
 class __Content__():
+    """
+    Constructs some content following some rules.
+
+    Calling convention:
+        All communication should be with a global IO object, which has some special methods
+    """
     allowed_type = set([Mast, str])
     def __init__(self, raw, mode):
         self.mode = mode
@@ -81,21 +113,35 @@ class __Content__():
                 raise ValueError("Verification failed, string '%s' did not match hash %s"%(s, self._hash))
         else:
             raise Exception("Code already loaded into object")
-    def execute(self, state):
+    def execute(self, IO=None):
+        if IO is None:
+            IO = __IO__()
         if self.compiled:
             exec(self.compiled)
     def syntax_check(self, s):
+        """ TODO: If any syntax checking/ast transforms are desired..."""
         return True
     def hash(self):
         return self._hash
+    def __str__(self):
+        return "Hash: %s\nMode:%s\nCode:\n\"\"\"\n%s\n\"\"\""%(self.hash(),self.mode, self.code)
 if __name__ == "__main__":
-    state = {'1':10}
-    __Content__("print state['1']\nstate[10] = 100\n", 'compile').execute(state)
-    print state
-    __Content__(crypto._hash("state[100] = 10"), 'run').verifyAdd("state[100] = 10").execute(state)
-    print state
+    a =     __Content__("print IO.heap[1]\nIO.heap[10] = 100\n", 'compile')
+    print a
+    IO = __IO__()
+    IO.push(10)
+    IO.push(100)
+    IO.heap[1] = 100
+    a.execute(IO)
+    print IO
+    __Content__(crypto._hash("IO.heap[100] = 10"), 'run').verifyAdd("IO.heap[100] = 10").execute(IO)
+    print IO
     try:
-        __Content__("Fail", 'run').verifyAdd("state[100] = 10").execute(state)
+        __Content__("Fail", 'run').verifyAdd("IO.heap[100] = 10").execute(IO)
         raise Exception("Should have failed to verifyAdd")
     except ValueError:
         print "verifyAdd as planned!"
+    a = Mast('compile', "print 10")
+    a.addBr('print 10').addBr('print 100')
+    a.addBr('print 10').addBr('print 100')
+    print a

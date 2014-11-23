@@ -24,15 +24,16 @@ class Mast():
         return newBr
 
     def hash(self):
-        child_hash = [child.hash() for child in children]
+        child_hash = [child.hash() for child in self.children]
         while child_hash:
             c1 = child_hash.pop(0)
             if child_hash:
                 c2 = child_hash.pop(0)
-                root = crypto.hash(c1+c2)
+                root = crypto._hash(c1+c2)
                 child_hash.append(root)
             else:
-                return crypto.hash(self.content.hash()+c1)
+                return crypto._hash(self.content.hash()+c1)
+        return self.content.hash()
 
     #given string code and all children, build branches 
     #and decide which to traverse on
@@ -50,9 +51,12 @@ class Mast():
     def getNextBr(self, content):
         pass
 
-    #TODO: make this pretty
+    #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
-        return "%s\nChildren:\n%s"%(str(self.content),"\n\n".join(map(lambda x: "\n    ".join(("    "+str(x)).split('\n')), self.children)))
+        return "%s\nMerkle Root:%s\n%s%s"%( str(self.content)
+                                          , self.hash()
+                                          , "Children:\n" if self.children else ""
+                                          , "\n".join(map(lambda x: "\n    ".join(("    "+str(x)).split('\n')), self.children)))
 
     #TODO: this will be moved
     def construct(self, port=8000, host="localhost"):
@@ -143,5 +147,7 @@ if __name__ == "__main__":
         print "verifyAdd as planned!"
     a = Mast('compile', "print 10")
     a.addBr('print 10').addBr('print 100')
-    a.addBr('print 10').addBr('print 100')
+    b = a.addBr('print 10').addBr('print 100')
+    b.addBr('print 1000')
+    b.addBr('print 1')
     print a

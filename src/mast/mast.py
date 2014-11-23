@@ -141,10 +141,7 @@ class __IO__():
     def getReturn(self):
         return self.returnstack.pop()
     def __str__(self):
-        return """
-        Stack (Top->Bottom): %s
-        Heap: %s
-        """%(", ".join(str(x) for x in self.stack[::-1]), self.heap)
+        return """\nStack (Top->Bottom): %s\nHeap: %s """%(", ".join(str(x) for x in self.stack[::-1]), self.heap)
 
 class __Content__():
     """
@@ -192,33 +189,41 @@ class __Content__():
         return self._hash
     def __str__(self):
         return "Hash: %s\nMode:%s\nCode:\n\"\"\"\n%s\n\"\"\""%(self.hash(),self.mode, self.code)
+def testPhase(s):
+
+    print "#"*(len(s)+12)
+    print "#     %s     #"%s
+    print "#"*(len(s)+12)
 if __name__ == "__main__":
-    a =     __Content__("print IO.heap[1]\nIO.heap[10] = 100\n", 'compile')
-    print a
+    testPhase("Verifying Content Behavior")
     IO = __IO__()
     IO.push(10)
     IO.push(100)
     IO.heap[1] = 100
-    a.execute(IO)
-    print IO
+    print "Verifying Content Execution"
     __Content__(crypto._hash("IO.heap[100] = 10"), 'run').verifyAdd("IO.heap[100] = 10").execute(IO)
-    print IO
+    assert IO.heap[100] == 10
+    print "...Content Executed"
+    print "Verifying bad Content Rejection"
     try:
         __Content__("Fail", 'run').verifyAdd("IO.heap[100] = 10").execute(IO)
         raise Exception("Should have failed to verifyAdd")
     except ValueError:
-        print "verifyAdd as planned!"
+        print "... Bad Content Rejected"
     a = Mast('compile', "print 10")
     a.addBr('print 10').addBr('print 100')
     b = a.addBr('print 10').addBr('print 100')
     b.addBr('print 1000')
     b.addBr('print 1')
+    testPhase("Printing Tree from MAST")
     print a
-    # Merkle Tree List
+    testPhase("Printing Merkle Proof List")
     a = MerkleTreeList(map(hashable, [1,2,3,4,5,6,7,8]))
     print a
+    testPhase("Testing Merkle Proof List")
     pl = a.proofList(hashable(3))
-    print "True?", prove(pl, hashable(3), a.hash())
+    assert prove(pl, hashable(3), a.hash())
+    print "...proof 1 passed, positive"
     pl[2] = ("bad","bad")
-    print "False?", prove(pl, hashable(3), a.hash())
-
+    assert not prove(pl, hashable(3), a.hash())
+    print "...proof 2 passed, negative"

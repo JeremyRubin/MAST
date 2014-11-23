@@ -218,10 +218,12 @@ if __name__ == "__main__":
     testPhase("Printing Tree from MAST")
     print a
     testPhase("Printing Merkle Proof List")
-    a = MerkleTreeList(map(hashable, [1,2,3,4,5,6,7,8]))
+    a = MerkleTreeList(map(hashable, xrange(1024)))
     print a
     testPhase("Testing Merkle Proof List")
     pl = a.proofList(hashable(3))
+    assert len(pl)==10
+    print "...Proof list is log2(n_elems) long"
     assert prove(pl, hashable(3), a.hash())
     print "...proof 1 passed, positive"
     pl[2] = ("bad","bad")

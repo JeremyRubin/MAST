@@ -24,16 +24,11 @@ class Mast():
         return newBr
 
     def hash(self):
-        child_hash = [child.hash() for child in self.children]
-        while child_hash:
-            c1 = child_hash.pop(0)
-            if child_hash:
-                c2 = child_hash.pop(0)
-                root = crypto._hash(c1+c2)
-                child_hash.append(root)
-            else:
-                return crypto._hash(self.content.hash()+c1)
-        return self.content.hash()
+        l = []
+        if self.children:
+            l.append(MerkleTreeList(self.children))
+        l.append(self.content)
+        return MerkleTreeList(l).hash()
 
     #given string code and all children, build branches 
     #and decide which to traverse on
@@ -64,6 +59,74 @@ class Mast():
             pass    #TODO
         else:
             pass    #TODO
+def indent(s):
+    return "    "+"\n    ".join(s.split('\n'))
+class MerkleNode():
+    def __init__(self, data, parent=None, c1=None, c2=None):
+        self.parent = parent
+        self.data = data
+        self.c1 = c1
+        self.c2 = c2
+    def hash(self):
+        return self.data.hash()
+    def __str__(self):
+        return "%s\n%s\n%s"%(str(self.data), indent(str(self.c1)), indent(str(self.c2)))
+class hashable:
+    def __init__(self, data):
+        self.data = data
+        self.h = crypto._hash(str(data))
+    def __str__(self):
+        return "{data:%s\n,hash:%s}"%(self.data, self.h)
+    def hash(self):
+        return self.h
+class ishash:
+    def __init__(self, data):
+        self.data = data
+    def hash(self):
+        return self.data
+class MerkleTreeList():
+    def __init__(self, items):
+        self.items = [MerkleNode(i) for i in items]
+        things = list(self.items)
+        if len(things) == 0:
+            raise ValueError("Cannot Construct Merkle Tree with empty list")
+        while things:
+            fst = things.pop(0)
+            if things:
+                snd = things.pop(0)
+                p = MerkleNode(hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
+                snd.parent = p
+                fst.parent = p
+                things.append(p)
+            else:
+                self.node = fst
+                break
+    def __str__(self):
+        return str(self.node)
+    def hash(self):
+        return self.node.hash()
+    def proofList(self, item):
+        """Provide the minimum set of hashes needed to prove hash's existence"""
+        f = MerkleNode(item)
+        h = f.hash()
+        filt = (filter(lambda x: h == x.hash(), self.items))
+        if len(filt) == 0:
+            raise ValueError("Not Found")
+        else:
+            result = []
+            f = filt[0]
+            while f.parent is not None:
+                f = f.parent
+                result.append((f.c1.hash(), f.c2.hash()))
+            return result
+def prove(proofList, data, mroot):
+    lastHash = data.hash()
+    for c1, c2 in proofList:
+        if lastHash not in [c1,c2]:
+            return False
+        lastHash = hashable(c1+c2).hash()
+    return lastHash == mroot
+
 class __IO__():
     def __init__(self):
         self.stack = []
@@ -151,3 +214,11 @@ if __name__ == "__main__":
     b.addBr('print 1000')
     b.addBr('print 1')
     print a
+    # Merkle Tree List
+    a = MerkleTreeList(map(hashable, [1,2,3,4,5,6,7,8]))
+    print a
+    pl = a.proofList(hashable(3))
+    print "True?", prove(pl, hashable(3), a.hash())
+    pl[2] = ("bad","bad")
+    print "False?", prove(pl, hashable(3), a.hash())
+

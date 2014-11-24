@@ -31,20 +31,24 @@ class Mast():
         return MerkleTreeList(l).hash()
 
     #given string code and all children, build branches 
-    #and decide which to traverse on
+    # and decide which to traverse on
     def execBr(self, hash):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s")
         else:   #TODO: execute down a given branch(from client side only)
             pass
 
-    #Move this to its own iterator
-    def initTraversal(self):
-        pass    #store some current branch, can move this to a separate class
-
-    #given current branch, return next branch(or all its children?)
-    def getNextBr(self, content):
+    #if can prove something is a child, add it to the child nodes.
+    # problems: adversary that cntrols messages sent to child. Execute mode
+    def addToChildren(self):
         pass
+
+    def execChild(self):
+        pass
+
+    def expandChild(self):
+        pass
+
 
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):

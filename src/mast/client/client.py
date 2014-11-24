@@ -2,6 +2,8 @@ import sys, urllib
 from tornado.httpclient import HTTPClient, HTTPError
 from tornado.httputil import url_concat
 
+#TODO: store list+cache or tree with information on previous execution steps
+
 class MastClient():
     def __init__(self, host, port, mast):
         self._url = "http://%s:%s" % (host, port)

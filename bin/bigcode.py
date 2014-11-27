@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import mast.mast as mast
+import mast.crypto as crypto
 ex = """
 def testfn(x, y, z):
     if x > y:
@@ -18,10 +19,10 @@ if __name__ == "__main__":
 
     
     
-    h = mast.ishash(mast.crypto._hash(ex%60))
+    h = crypto.ishash(mast.crypto.hash(ex%60))
     pl = mt.proofList(h)
 
-    c = mast.hashable(ex%60)
+    c = crypto.hashable(ex%60)
     print
     print "Compression achieved for 100,000 branches"
     print "%f %%"%(100 - 100*(sum(len(a)+len(b) for a,b in pl)+len(mt.hash())+len(c.data) )/ float(sum(len(co) for co in code)))

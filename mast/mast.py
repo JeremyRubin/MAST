@@ -75,19 +75,6 @@ class MerkleNode():
         return self.data.hash()
     def __str__(self):
         return "%s\n%s\n%s"%(str(self.data), indent(str(self.c1)), indent(str(self.c2)))
-class hashable:
-    def __init__(self, data):
-        self.data = data
-        self.h = crypto._hash(str(data))
-    def __str__(self):
-        return "{data:%s\n,hash:%s}"%(self.data, self.h)
-    def hash(self):
-        return self.h
-class ishash:
-    def __init__(self, data):
-        self.data = data
-    def hash(self):
-        return self.data
 class MerkleTreeList():
     def __init__(self, items):
         self.items = [MerkleNode(i) for i in items]
@@ -98,7 +85,7 @@ class MerkleTreeList():
             fst = things.pop(0)
             if things:
                 snd = things.pop(0)
-                p = MerkleNode(hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
+                p = MerkleNode(crypto.hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
                 snd.parent = p
                 fst.parent = p
                 things.append(p)
@@ -128,7 +115,7 @@ def prove(proofList, data, mroot):
     for c1, c2 in proofList:
         if lastHash not in [c1,c2]:
             return False
-        lastHash = hashable(c1+c2).hash()
+        lastHash = crypto.hashable(c1+c2).hash()
     return lastHash == mroot
 
 class __IO__():
@@ -167,7 +154,7 @@ class __Content__():
             else:
                 self.compiled = None
             self.code = raw
-            self._hash = crypto._hash(raw)
+            self._hash = crypto.hash(raw)
         if mode == "run":
             self.code = None
             self._hash = raw
@@ -205,7 +192,7 @@ if __name__ == "__main__":
     IO.push(100)
     IO.heap[1] = 100
     print "Verifying Content Execution"
-    __Content__(crypto._hash("IO.heap[100] = 10"), 'run').verifyAdd("IO.heap[100] = 10").execute(IO)
+    __Content__(crypto.hash("IO.heap[100] = 10"), 'run').verifyAdd("IO.heap[100] = 10").execute(IO)
     assert IO.heap[100] == 10
     print "...Content Executed"
     print "Verifying bad Content Rejection"
@@ -222,14 +209,14 @@ if __name__ == "__main__":
     testPhase("Printing Tree from MAST")
     print a
     testPhase("Printing Merkle Proof List")
-    a = MerkleTreeList(map(hashable, xrange(1024)))
+    a = MerkleTreeList(map(crypto.hashable, xrange(1024)))
     print a
     testPhase("Testing Merkle Proof List")
-    pl = a.proofList(hashable(3))
+    pl = a.proofList(crypto.hashable(3))
     assert len(pl)==10
     print "...Proof list is log2(n_elems) long"
-    assert prove(pl, hashable(3), a.hash())
+    assert prove(pl, crypto.hashable(3), a.hash())
     print "...proof 1 passed, positive"
     pl[2] = ("bad","bad")
-    assert not prove(pl, hashable(3), a.hash())
+    assert not prove(pl, crypto.hashable(3), a.hash())
     print "...proof 2 passed, negative"

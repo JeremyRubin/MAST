@@ -127,6 +127,10 @@ class __IO__():
         self.stack.append(x)
     def pop(self):
         return self.stack.pop()
+    def peek(self):
+        return self.stack[-1]
+    def dup(self):
+        self.push(self.peek())
     def setReturn(self, x):
         self.returnstack.push(x)
     def getReturn(self):

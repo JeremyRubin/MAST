@@ -30,21 +30,26 @@ class Mast():
         l.append(self.content)
         return MerkleTreeList(l).hash()
 
-    #given string code and all children, build branches 
-    # and decide which to traverse on
-    def execBr(self, hash):
+    # Verifies and executes the code for the current node
+    # Returns the next hash in the path
+    def execCode(self, code, IO):
         if self.mode != "run":
-            raise ValueError("Illegal mode: %s")
-        else:   #TODO: execute down a given branch(from client side only)
-            pass
+            raise ValueError("Illegal mode: %s"%self.mode)
+        self.content.verifyAdd(code).execute(IO)
+        nextHash = IO.getReturn() # assume this is a hash for now
+        return nextHash
 
-    #if can prove something is a child, add it to the child nodes.
-    # problems: adversary that cntrols messages sent to child. Execute mode
-    def addToChildren(self):
-        pass
-
-    def execChild(self):
-        pass
+    # Given the hash for a particular child node and a proofList, adds
+    # the child node if the hash's existence can be proven
+    # Returns the resulting child node
+    def addToChildren(self, childHash, proofList):
+        if self.mode != "run":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        if prove(proofList, childHash, self.content.hash()):
+            child = self.addBr(childHash)
+            return child
+        else:
+            raise ValueError("Proof failed on hash: %s"%childHash)
 
     def expandChild(self):
         pass

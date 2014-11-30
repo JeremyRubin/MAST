@@ -2,7 +2,7 @@ import sys
 import tornado.ioloop
 import tornado.web
 
-##TODO: Store current root of tree execution is ocurring on
+##TODO: Store current root of tree execution is occurring on
 
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, mast):

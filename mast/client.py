@@ -9,6 +9,7 @@ class MastClient():
         self._url = "http://%s:%s" % (host, port)
         self._http_client = HTTPClient()
         self._mast = mast
+        self.__IO__ = __IO__()
 
     def connect(self, path, method="GET", data={}):
         url = self._url + path
@@ -28,6 +29,15 @@ class MastClient():
  
     def run(self):
         pass #TODO: request and run code from server using self._mast
+
+    def get_req(self, data):
+        self.__IO__.push(data)
+
+    def exec_on_merkle(self, fun, *args):
+        #to exec functions on self._mast
+        #Usage: exec_on_merkle(fn_name, arg1, arg2, etc)
+        self._mast.fun(*args)
+
 
     def close(self):
         self._http_client.close()

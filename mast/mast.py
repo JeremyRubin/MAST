@@ -145,8 +145,7 @@ class __IO__():
     def __str__(self):
         return """\nStack (Top->Bottom): %s\n
                 Heap: %s \n
-                Execution History (Top->Bottom): %s\n"""%
-                (", ".join(str(x) for x in self.stack[::-1]), 
+                Execution History (Top->Bottom): %s\n"""%(", ".join(str(x) for x in self.stack[::-1]), 
                     self.heap, 
                     ", ".join(str(x) for x in self.history[::-1]))
 

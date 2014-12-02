@@ -1,3 +1,7 @@
+"""
+Contract demo for MAST: Enforcing honest execution of 
+contract between two parties, A and B.
+"""
 #!/usr/bin/python
 import mast.mast as mast
 prelude = """

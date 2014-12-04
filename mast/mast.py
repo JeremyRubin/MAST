@@ -49,12 +49,13 @@ class Mast():
             raise ValueError("Illegal mode: %s"%self.mode)
         nextHash = IO.getReturn()
         child = self.__addToChildren(nextHash, proofList)
-        child.__execCode(self, code, IO)
+        childCodeHash = proofList[-1][1] # get the hash of the code from proofList
+        child.__execCode(self, childCode, childCodeHash, IO)
         return child
 
     # Given the hash for a particular child node and a proofList, adds
     # the child node if the hash's existence can be proven
-    # Returns the resulting child node
+    # Returns the resulting child node whose content is childHash
     def __addToChildren(self, childHash, proofList):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
@@ -64,12 +65,14 @@ class Mast():
         else:
             raise ValueError("Proof failed on hash: %s"%childHash)
 
-    # Verifies and executes the code for the current node
+    # Executes the code for the current node if it matches the given codeHash
     # Returns the next hash in the path
-    def __execCode(self, code, IO):
+    def __execCode(self, code, codeHash, IO):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
-        self.content.verifyAdd(code).execute(IO)
+        # Make new Content for verifcation/execution, don't save the code locally
+        codeContent = __Content__(codeHash, self.mode)
+        codeContent.verifyAdd(code).execute(IO)
         nextHash = IO.getReturn() # this is the hash of the next MAST child
         return nextHash
 

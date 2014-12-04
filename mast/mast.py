@@ -32,6 +32,8 @@ class Mast():
         l.append(self.content)
         return MerkleTreeList(l).hash()
 
+    # RUN-SIDE EXECUTION METHODS
+
     # Calling convention:
     # nextHash = IO.getReturn()
     # client sends nextHash to server
@@ -50,15 +52,6 @@ class Mast():
         child.__execCode(self, code, IO)
         return child
 
-    # Verifies and executes the code for the current node
-    # Returns the next hash in the path
-    def __execCode(self, code, IO):
-        if self.mode != "run":
-            raise ValueError("Illegal mode: %s"%self.mode)
-        self.content.verifyAdd(code).execute(IO)
-        nextHash = IO.getReturn() # assume this is a hash for now
-        return nextHash
-
     # Given the hash for a particular child node and a proofList, adds
     # the child node if the hash's existence can be proven
     # Returns the resulting child node
@@ -70,6 +63,17 @@ class Mast():
             return child
         else:
             raise ValueError("Proof failed on hash: %s"%childHash)
+
+    # Verifies and executes the code for the current node
+    # Returns the next hash in the path
+    def __execCode(self, code, IO):
+        if self.mode != "run":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        self.content.verifyAdd(code).execute(IO)
+        nextHash = IO.getReturn() # this is the hash of the next MAST child
+        return nextHash
+
+    # COMPILE-SIDE EXECUTION METHODS
 
     # Wrapper function to be called by server
     # Finds the node corresponding the given hash amongst its direct children

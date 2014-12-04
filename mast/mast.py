@@ -70,7 +70,7 @@ class Mast():
     def __execCode(self, code, codeHash, IO):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
-        # Make new Content for verifcation/execution, don't save the code locally
+        # Make new Content for verification/execution, don't save the code locally
         codeContent = __Content__(codeHash, self.mode)
         codeContent.verifyAdd(code).execute(IO)
         nextHash = IO.getReturn() # this is the hash of the next MAST child
@@ -90,29 +90,29 @@ class Mast():
         proofList = self.__getChildProofList(child)
         return child, code, proofList
 
+    # Searches for child node by the given hash
+    def __getChildByHash(self, h):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        for child in self.children:
+            if child.hash() == h:
+                return child
+        raise ValueError("Hash not found: %s"%h)
+
     # Generates proof list for existence of a child node
     # Appends proof list from children Merkle tree with (childrenTree.hash, self.content.hash())
     # This connects the proof list to the current node
-    def __getChildProofList(self, child):
+    def __getChildProofList(self, childHash):
         if self.mode != "compile":
             raise ValueError("Illegal mode: %s"%self.mode)
         if !self.children:
             raise ValueError("Cannot get child proof list on leaf node")
         #Get proof list of the children Merkle tree
         childrenTree = MerkleTreeList(self.children)
-        childrenProof = childrenTree.proofList(child)
+        childrenProof = childrenTree.proofList(crypto.ishash(childHash))
         # Get proof list for existence of children Merkle tree from current node
         curNodeProof = [(childrenTree.hash(), self.content.hash())]
         return childrenProof + curNodeProof
-
-    # Searches for child node by the given hash
-    def __getChildByHash(self, hash):
-        if self.mode != "compile":
-            raise ValueError("Illegal mode: %s"%self.mode)
-        for child in children:
-            if child.hash() == hash:
-                return child
-        raise ValueError("Hash not found: %s"%hash)
 
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):

@@ -32,9 +32,27 @@ class Mast():
         l.append(self.content)
         return MerkleTreeList(l).hash()
 
+    # Calling convention:
+    # nextHash = IO.getReturn()
+    # client sends nextHash to server
+    # server sends back (code, proofList)
+    # client: child = execBr(nextHash, code, proofList, IO)
+    
+    # Wrapper function to be called by client for execution
+    # Verifies that nextHash (returned from previous execution) is valid
+    # Creates new child node if hash can be verified
+    # Adds code content to the child node and executes it
+    def executeBr(self, childCode, proofList, IO):
+        if self.mode != "run":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        nextHash = IO.getReturn()
+        child = self.__addToChildren(nextHash, proofList)
+        child.__execCode(self, code, IO)
+        return child
+
     # Verifies and executes the code for the current node
     # Returns the next hash in the path
-    def execCode(self, code, IO):
+    def __execCode(self, code, IO):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
         self.content.verifyAdd(code).execute(IO)
@@ -44,7 +62,7 @@ class Mast():
     # Given the hash for a particular child node and a proofList, adds
     # the child node if the hash's existence can be proven
     # Returns the resulting child node
-    def addToChildren(self, childHash, proofList):
+    def __addToChildren(self, childHash, proofList):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
         if prove(proofList, childHash, self.content.hash()):
@@ -52,10 +70,6 @@ class Mast():
             return child
         else:
             raise ValueError("Proof failed on hash: %s"%childHash)
-
-    def expandChild(self):
-        pass
-
 
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):

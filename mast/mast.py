@@ -71,14 +71,40 @@ class Mast():
         else:
             raise ValueError("Proof failed on hash: %s"%childHash)
 
-    # Searches children for the input hash
-    # Returns the corresponding code
+    # Wrapper function to be called by server
+    # Finds the node corresponding the given hash amongst its direct children
+    # Returns the child node (for server pointer updates), child code content,
+    #   and a proofList that verifies the existence of the child hash
     def searchChildren(self, hash):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        child = self.__getChildByHash(hash)
+        code = child.content.code
+        proofList = self.__getChildProofList(child)
+        return child, code, proofList
+
+    # Generates proof list for existence of a child node
+    # Appends proof list from children Merkle tree with (childrenTree.hash, self.content.hash())
+    # This connects the proof list to the current node
+    def __getChildProofList(self, child):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        if !self.children:
+            raise ValueError("Cannot get child proof list on leaf node")
+        #Get proof list of the children Merkle tree
+        childrenTree = MerkleTreeList(self.children)
+        childrenProof = childrenTree.proofList(child)
+        # Get proof list for existence of children Merkle tree from current node
+        curNodeProof = [(childrenTree.hash(), self.content.hash())]
+        return childrenProof + curNodeProof
+
+    # Searches for child node by the given hash
+    def __getChildByHash(self, hash):
         if self.mode != "compile":
             raise ValueError("Illegal mode: %s"%self.mode)
         for child in children:
             if child.hash() == hash:
-                return child.content.code
+                return child
         raise ValueError("Hash not found: %s"%hash)
 
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?

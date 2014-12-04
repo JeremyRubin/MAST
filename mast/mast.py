@@ -71,6 +71,16 @@ class Mast():
         else:
             raise ValueError("Proof failed on hash: %s"%childHash)
 
+    # Searches children for the input hash
+    # Returns the corresponding code
+    def searchChildren(self, hash):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        for child in children:
+            if child.hash() == hash:
+                return child.content.code
+        raise ValueError("Hash not found: %s"%hash)
+
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
         return "%s\nMerkle Root:%s\n%s%s"%( str(self.content)

@@ -105,7 +105,7 @@ class Mast():
     def __getChildProofList(self, childHash):
         if self.mode != "compile":
             raise ValueError("Illegal mode: %s"%self.mode)
-        if !self.children:
+        if not self.children:
             raise ValueError("Cannot get child proof list on leaf node")
         #Get proof list of the children Merkle tree
         childrenTree = MerkleTreeList(self.children)
@@ -236,7 +236,7 @@ def testPhase(s):
     print "#"*(len(s)+12)
 if __name__ == "__main__":
     testPhase("Verifying Content Behavior")
-    IO = __IO__()
+    IO = io.__IO__()
     IO.push(10)
     IO.push(100)
     IO.heap[1] = 100

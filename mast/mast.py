@@ -32,19 +32,31 @@ class Mast():
         l.append(self.content)
         return MerkleTreeList(l).hash()
 
-    # Verifies and executes the code for the current node
-    # Returns the next hash in the path
-    def execCode(self, code, IO):
+    # RUN-SIDE EXECUTION METHODS
+
+    # Calling convention:
+    # nextHash = IO.getReturn()
+    # client sends nextHash to server
+    # server sends back (code, proofList)
+    # client: child = execBr(nextHash, code, proofList, IO)
+    
+    # Wrapper function to be called by client for execution
+    # Verifies that nextHash (returned from previous execution) is valid
+    # Creates new child node if hash can be verified
+    # Adds code content to the child node and executes it
+    def executeBr(self, childCode, proofList, IO):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
-        self.content.verifyAdd(code).execute(IO)
-        nextHash = IO.getReturn() # assume this is a hash for now
-        return nextHash
+        nextHash = IO.getReturn()
+        child = self.__addToChildren(nextHash, proofList)
+        childCodeHash = proofList[-1][1] # get the hash of the code from proofList
+        child.__execCode(self, childCode, childCodeHash, IO)
+        return child
 
     # Given the hash for a particular child node and a proofList, adds
     # the child node if the hash's existence can be proven
-    # Returns the resulting child node
-    def addToChildren(self, childHash, proofList):
+    # Returns the resulting child node whose content is childHash
+    def __addToChildren(self, childHash, proofList):
         if self.mode != "run":
             raise ValueError("Illegal mode: %s"%self.mode)
         if prove(proofList, childHash, self.content.hash()):
@@ -53,9 +65,54 @@ class Mast():
         else:
             raise ValueError("Proof failed on hash: %s"%childHash)
 
-    def expandChild(self):
-        pass
+    # Executes the code for the current node if it matches the given codeHash
+    # Returns the next hash in the path
+    def __execCode(self, code, codeHash, IO):
+        if self.mode != "run":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        # Make new Content for verification/execution, don't save the code locally
+        codeContent = __Content__(codeHash, self.mode)
+        codeContent.verifyAdd(code).execute(IO)
+        nextHash = IO.getReturn() # this is the hash of the next MAST child
+        return nextHash
 
+    # COMPILE-SIDE EXECUTION METHODS
+
+    # Wrapper function to be called by server
+    # Finds the node corresponding the given hash amongst its direct children
+    # Returns the child node (for server pointer updates), child code content,
+    #   and a proofList that verifies the existence of the child hash
+    def searchChildren(self, hash):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        child = self.__getChildByHash(hash)
+        code = child.content.code
+        proofList = self.__getChildProofList(child)
+        return child, code, proofList
+
+    # Searches for child node by the given hash
+    def __getChildByHash(self, h):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        for child in self.children:
+            if child.hash() == h:
+                return child
+        raise ValueError("Hash not found: %s"%h)
+
+    # Generates proof list for existence of a child node
+    # Appends proof list from children Merkle tree with (childrenTree.hash, self.content.hash())
+    # This connects the proof list to the current node
+    def __getChildProofList(self, childHash):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        if not self.children:
+            raise ValueError("Cannot get child proof list on leaf node")
+        #Get proof list of the children Merkle tree
+        childrenTree = MerkleTreeList(self.children)
+        childrenProof = childrenTree.proofList(crypto.ishash(childHash))
+        # Get proof list for existence of children Merkle tree from current node
+        curNodeProof = [(childrenTree.hash(), self.content.hash())]
+        return childrenProof + curNodeProof
 
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
@@ -179,7 +236,7 @@ def testPhase(s):
     print "#"*(len(s)+12)
 if __name__ == "__main__":
     testPhase("Verifying Content Behavior")
-    IO = __IO__()
+    IO = io.__IO__()
     IO.push(10)
     IO.push(100)
     IO.heap[1] = 100

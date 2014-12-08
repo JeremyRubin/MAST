@@ -23,6 +23,7 @@ class ConsensusNode():
     # Make a local copy of the ledger
     def __init__(GlobalConsensus):
         self.ledger_copy = GlobalConsensus.ledger
+        self.txn_queue = []
 
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
@@ -33,20 +34,22 @@ class ConsensusNode():
         #  obvi
         #    execute txn
         c.execute(arglist)
+        #TODO: what is returned here? How do we know if valid?
 
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick():
-        #runs a tick of simulation 
-        pass
+        for c, arglist in self.txn_queue:
+            verifyExecTxn(c, arglist)
+            #TODO: what is returned? How to know if valid?
 
     def useGlobalConsensus(ledger):
         # sync with global
         self.ledger_copy = GlobalConsensus.ledger
 
-    def receive(self, hash, arglist):
+    def receive(self, c, arglist):
         # receive should add to processing queue
-        pass
+        self.txn_queue.push((c,arglist))
 
 
 class GoodNode(ConsensusNode):

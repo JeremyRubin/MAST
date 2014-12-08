@@ -114,6 +114,37 @@ class Mast():
         curNodeProof = [(childrenTree.hash(), self.content.hash())]
         return childrenProof + curNodeProof
 
+    def generateFullProofUpward(self, merkleRoot):
+        if self.mode != "compile":
+            raise ValueError("Illegal mode: %s"%self.mode)
+        proofs = []
+        parent = self.parent
+        child = self
+        while parent.hash() != merkleRoot:
+            mroot = parent.hash()
+            pl = parent.__getChildProofList(child.hash())
+            data = child.content
+            proofs.append( (pl, data, mroot) )
+            child = parent
+            parent = parent.parent
+            if parent == None:
+                return None
+        return proofs
+    @staticmethod
+    def upwardProve(megaproof):
+        (_,inp,lastHash) = megaproof[0]
+        end_pl = False
+        for pl, data, mroot in megaproof:
+            if not (prove(pl, inp, mroot) and (data.hash() == end_pl if end_pl else True)):
+                return False
+            else:
+                end_pl = pl[-1][-1]
+            inp = ishash(mroot)
+        return True
+
+
+
+
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
         return "%s\nMerkle Root:%s\n%s%s"%( str(self.content)
@@ -190,7 +221,7 @@ class __Content__():
     Calling convention:
         All communication should be with a global IO object, which has some special methods
     """
-    allowed_type = set([Mast, str])
+    allowed_type = set([str])
     def __init__(self, raw, mode):
         self.mode = mode
         if not any(map(lambda x: isinstance(raw, x), __Content__.allowed_type)):

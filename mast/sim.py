@@ -36,6 +36,7 @@ class ConsensusNode():
     def tick():
         #runs a tick of simulation 
         pass
+
     def useGlobalConsensus(ledger):
         # sync with global
         self.ledger_copy = GlobalConsensus.ledger

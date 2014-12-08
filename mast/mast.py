@@ -113,7 +113,8 @@ class Mast():
         # Get proof list for existence of children Merkle tree from current node
         curNodeProof = [(childrenTree.hash(), self.content.hash())]
         return childrenProof + curNodeProof
-
+    # Given the parent's merkle root, crawl up the tree generating
+    # a Proof List which contains all of the code path
     def generateFullProofUpward(self, merkleRoot):
         if self.mode != "compile":
             raise ValueError("Illegal mode: %s"%self.mode)
@@ -123,19 +124,22 @@ class Mast():
         while parent.hash() != merkleRoot:
             mroot = parent.hash()
             pl = parent.__getChildProofList(child.hash())
-            data = child.content
+            data = child.content.code
             proofs.append( (pl, data, mroot) )
             child = parent
             parent = parent.parent
             if parent == None:
                 return None
         return proofs
+    # Given a megaproof from generateFullProofUpward,
+    # Verify all of the content is correct and everying can be proved
     @staticmethod
     def upwardProve(megaproof):
-        (_,inp,lastHash) = megaproof[0]
+        (_,a,lastHash) = megaproof[0]
+        inp = hashable(a)
         end_pl = False
         for pl, data, mroot in megaproof:
-            if not (prove(pl, inp, mroot) and (data.hash() == end_pl if end_pl else True)):
+            if not (prove(pl, inp, mroot) and (hashable(data).hash() == end_pl if end_pl else True)):
                 return False
             else:
                 end_pl = pl[-1][-1]

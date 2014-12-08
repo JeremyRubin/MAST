@@ -1,22 +1,32 @@
+import random
 #TODO: Nitya
-class GlobalConsnesus:
+class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
-    ledger = []
+    self.ledger = []
     @classmethod
     def consensus_tick(cls, nodes):
-        pass
+        update_ledger(nodes)
+
+    def update_ledger(nodes):
+        for node in nodes:
+            for entry in node.ledger_copy:
+                if entry not in self.ledger:
+                    self.ledger.push(entry)
+
     # run global consensus, update ledger
 
 class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
-    def __init__(GlobalConsnesu):
-        ledger
+    def __init__(GlobalConsensus):
+        self.ledger_copy = GlobalConsensus.ledger
 
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
-        pass
+        if c not in self.ledger_copy:
+            self.ledger_copy.push(c)
+
     def verifyExecTxn(c, arglist): # regular hash c
         #  obvi
         #    execute txn
@@ -28,21 +38,32 @@ class ConsensusNode():
         pass
     def useGlobalConsensus(ledger):
         # sync with global
-        pass
-    def recieve(self, hash, arglist):
-        # recieve should add to processing queue
+        self.ledger_copy = GlobalConsensus.ledger
+
+    def receive(self, hash, arglist):
+        # receive should add to processing queue
         pass
 
 
 class GoodNode(ConsensusNode):
     #faithful impl of methods
-    pass
-class EvilNode(ConsensuseNode):
+    
+    
+
+class EvilNode(ConsensusNode):
     # tries to inject bad things into consensus
-    pass
+    def includeTxn(self, c): # SignedHash c
+        #malicious, if c is already in ledger, remove the item from ledger
+        if c in self.ledger_copy:
+            self.ledger_copy.pop(c)
+
 class InconsistentNode(ConsensusNode):
     # unpredictably behaves like either a goodnode or evilnode
-    pass
+    def includeTxn(self, c): # SignedHash c
+        #inconsistent, add c to the ledger probablistically
+        if c not in self.ledger_copy:
+            if random.random() > 0.5:
+                self.ledger_copy.push(c)
 
 #TODO: Manali
 class SignedHash:

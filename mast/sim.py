@@ -1,4 +1,6 @@
 import random
+import mast
+
 #TODO: Nitya
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
@@ -109,15 +111,11 @@ class Maybe():
     # ABC for a maybe type
     def isValid():
         pass
-    def validValue():
-        pass
 class Valid(Maybe):
     def __init__(self, value):
         self.value = value
     def isValid():
         return True
-    def validValue():
-        return self.value
 class Invalid(Maybe):
     def isValid():
         return False
@@ -125,14 +123,14 @@ class Invalid(Maybe):
 class Ledger():
     def __init__():
         self.ledger = []
-        self.tmp = frozenset()
+        self.tmp = set()
     def add_txn(self, txn):
         self.tmp.add(txn)
     def commit(self):
-        self.ledger.append(self.tmp)
+        self.ledger.append(frozenset(self.tmp))
         self.abort()
     def abort(self):
-        self.tmp = frozenset()
+        self.tmp = set()
     def sync(self, consensus):
         self.ledger[-1] = consensus[-1]
 
@@ -142,7 +140,7 @@ def prove(a, b, c):
     #merkleroot matches pl
     #pl matches cl
 def merkelVerify(merkleroot, pl, cl):
-    if not prove(mekrleroot, pl, cl):
+    if prove(mekrleroot, pl, cl):
         map(exec, cl)
 prelude = """
 signature  = a.pop()

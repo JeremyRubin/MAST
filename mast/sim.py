@@ -30,7 +30,8 @@ class ConsensusNode():
     def verifyExecTxn(c, arglist): # regular hash c
         #  obvi
         #    execute txn
-        pass
+        c.execute(arglist)
+
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick():

@@ -1,3 +1,4 @@
+#TODO: Nitya
 class GlobalConsnesus:
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
@@ -43,7 +44,7 @@ class InconsistentNode(ConsensusNode):
     # unpredictably behaves like either a goodnode or evilnode
     pass
 
-
+#TODO: Manali
 class SignedHash:
     # Implement this as a linked-list with a base case hash, and 
     # as for the key function, just use a unique identifier 
@@ -80,7 +81,7 @@ class Txn():
     def hash():
         pass
 
-
+#TODO: Jeremy
 class Maybe():
     # ABC for a maybe type
     def isValid():

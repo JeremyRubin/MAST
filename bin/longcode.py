@@ -10,21 +10,22 @@ def testfn(x, y, z):
         print %s
 """
 if __name__ == "__main__":
-    code = list(ex%x for x in xrange(10))
+    code = list(ex%x for x in xrange(20))
     m = mast.Mast("compile", "print 1")
     n = m
     for i, c in enumerate(code):
         if i%10000 == 0:
             print '.'
-        n.addBr(c)
-        n.addBr(c)
+        for i in xrange(100):
+            n.addBr(c)
         n = n.addBr(c)
     mt = mast.MerkleTreeList(m.children)
 
     
-    
-    pprint(n.generateFullProofUpward(m.hash()))
-    print mast.Mast.upwardProve(n.generateFullProofUpward(m.hash()))
+    print len("".join(code))*101*10
+    pr = n.generateFullProofUpward(m.hash())
+    print len(str(pr))
+    print mast.Mast.upwardProve(pr)
 
 
 

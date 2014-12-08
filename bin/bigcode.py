@@ -9,7 +9,7 @@ def testfn(x, y, z):
         print %s
 """
 if __name__ == "__main__":
-    code = list(ex%x for x in xrange(100000))
+    code = list(ex%x for x in xrange(100))
     m = mast.Mast("compile", "print 1")
     for i, c in enumerate(code):
         if i%10000 == 0:

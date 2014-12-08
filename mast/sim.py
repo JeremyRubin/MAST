@@ -1,30 +1,3 @@
-class SignedHash:
-    # Implement this as a linked-list with a base case hash, and 
-    # as for the key function, just use a unique identifier 
-    def __init__(self, nestedSignedHash):
-        pass        
-    def hash(self):
-        pass
-    def sign(self, pubKey):
-        pass
-    def signedBy(self):
-        pass
-
-
-
-class Ledger():
-    def __init__():
-        self.ledger = []
-        self.tmp = frozenset()
-    def add_txn(self, txn):
-        self.tmp.add(txn)
-    def commit(self):
-        self.ledger.append(self.tmp)
-        self.abort()
-    def abort(self):
-        self.tmp = frozenset()
-    def sync(self, consensus):
-        self.ledger[-1] = consensus[-1]
 class GlobalConsnesus:
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
@@ -33,6 +6,7 @@ class GlobalConsnesus:
     def consensus_tick(cls, nodes):
         pass
     # run global consensus, update ledger
+
 class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
@@ -70,6 +44,18 @@ class InconsistentNode(ConsensusNode):
     pass
 
 
+class SignedHash:
+    # Implement this as a linked-list with a base case hash, and 
+    # as for the key function, just use a unique identifier 
+    def __init__(self, nestedSignedHash):
+        pass        
+    def hash(self):
+        pass
+    def sign(self, pubKey):
+        pass
+    def signedBy(self):
+        pass
+
 class Signatory():
     # This is a enttity which builds contracts. They can 'sign' strings with their pubKey
     # And we can see if they signed a string
@@ -79,6 +65,7 @@ class Signatory():
     def __sign__(string):
         pass
     def checkSig(string):
+
 class Txn():
     # The main deal for a contract
     def __init__(data):
@@ -111,9 +98,22 @@ class Invalid(Maybe):
     def isValid():
         return False
 
+class Ledger():
+    def __init__():
+        self.ledger = []
+        self.tmp = frozenset()
+    def add_txn(self, txn):
+        self.tmp.add(txn)
+    def commit(self):
+        self.ledger.append(self.tmp)
+        self.abort()
+    def abort(self):
+        self.tmp = frozenset()
+    def sync(self, consensus):
+        self.ledger[-1] = consensus[-1]
 
 # implement some consistent version from Mast.py
-def prove(a, b c):
+def prove(a, b, c):
     pass
     #merkleroot matches pl
     #pl matches cl

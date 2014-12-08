@@ -5,7 +5,7 @@ import mast
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
-    self.ledger = []
+    ledger = []
     @classmethod
     def consensus_tick(cls, nodes):
         update_ledger(nodes)
@@ -53,7 +53,7 @@ class ConsensusNode():
 
 class GoodNode(ConsensusNode):
     #faithful impl of methods
-    
+   pass 
     
 
 class EvilNode(ConsensusNode):
@@ -134,15 +134,20 @@ class Txn():
 #TODO: Jeremy
 class Maybe():
     # ABC for a maybe type
-    def isValid():
+    def isValid(self):
         pass
+    def __str__(self):
+        if self.isValid():
+            return "Valid(%s)"%repr(self.value)
+        else:
+            return "Invalid()"
 class Valid(Maybe):
     def __init__(self, value):
         self.value = value
-    def isValid():
+    def isValid(self):
         return True
 class Invalid(Maybe):
-    def isValid():
+    def isValid(self):
         return False
 
 class Ledger():
@@ -159,19 +164,17 @@ class Ledger():
     def sync(self, consensus):
         self.ledger[-1] = consensus[-1]
 
-# implement some consistent version from Mast.py
-def prove(a, b, c):
-    pass
-    #merkleroot matches pl
-    #pl matches cl
-def merkelVerify(merkleroot, pl, cl):
-    if prove(mekrleroot, pl, cl):
-        map(exec, cl)
+def merkleVerify(mroot, args):
+    pr = args.pop()
+    if mast.Mast.upwardProve(pr):
+        for _, code, _ in pr:
+            exec code
+    return ret
 prelude = """
 signature  = a.pop()
 if hash(a) != signature.content:
     return Invalid()
 # Args[1] is a prooflist for merklehash
 # Args[2] is the list of branches to Execute
-merkleVerify(merkelhash, args[1], args[2])
+merkleVerify(merkelhash, args[0], args[1])
 """

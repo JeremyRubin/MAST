@@ -1,16 +1,18 @@
 #!/usr/bin/python
 import mast.mast as mast
 import mast.crypto as crypto
+import mast.sim as sim
 from pprint import pprint
-ex = """
+ex = lambda x: """
 def testfn(x, y, z):
     if x > y:
         print x, y, z
     else:
         print %s
-"""
+ret = Valid("print 1")
+"""%(x)
 if __name__ == "__main__":
-    code = list(ex%x for x in xrange(20))
+    code = map(ex, xrange(20)) 
     m = mast.Mast("compile", "print 1")
     n = m
     for i, c in enumerate(code):
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     print len("".join(code))*101*10
     pr = n.generateFullProofUpward(m.hash())
     print len(str(pr))
-    print mast.Mast.upwardProve(pr)
+    print sim.merkleVerify(m.hash(), [pr])
 
 
 

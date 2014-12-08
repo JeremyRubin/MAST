@@ -45,41 +45,61 @@ class InconsistentNode(ConsensusNode):
     pass
 
 #TODO: Manali
-class SignedHash:
-    # Implement this as a linked-list with a base case hash, and 
+class SignedHash():
+    # A linked-list with a base case hash, and 
     # as for the key function, just use a unique identifier 
     def __init__(self, nestedSignedHash):
-        pass        
+        self.val = nestedSignedHash
+        self.next = None
     def hash(self):
-        pass
+        cur = self
+        while cur.next:
+            cur = cur.next
+        return cur.val
     def sign(self, pubKey):
-        pass
-    def signedBy(self):
-        pass
+        self.next = self.val
+        self.val = pubKey
+    def signedBy(self, pubKey):
+        cur = self
+        while cur.next:
+            if cur.val == pubKey:
+                return True
+            cur = cur.next
+        return False
 
 class Signatory():
-    # This is a enttity which builds contracts. They can 'sign' strings with their pubKey
+    # This is an entity which builds contracts. They can 'sign' strings with their pubKey
     # And we can see if they signed a string
-    def __init__(self):
-        self.pubKey  = ?
-        self.__secKey__ = ?
+    def __init__(self, id):
+        self.pubKey  = id
+        self.__secKey__ = id
     def __sign__(string):
-        pass
-    def checkSig(string):
+        return SignedHash(string).sign(self.pubKey)
+    def checkSig(signed_hash):
+        return signed_hash.signedBy(self.pubKey)
 
 class Txn():
     # The main deal for a contract
-    def __init__(data):
-        pass
+    def __init__(self, mRootHash):
+        self.mRootHash = mRootHash
+        self.nextTxn = None
     # run the prelude
-    def execute(self, [arglist]):
-        pass
+    def execute(self, args):
+        signature  = args.pop()
+        if hash(tuple(args)) != signature.hash():
+            return Invalid()
+        pl = args[0] # prooflist for mRootHash
+        cl = args[1] # list of branches to Execute
+        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args?
+        self.nextTxn = ret
+        if not ret:
+            raise ValueError("Invalid ret")
     # the result of Execute
     def nextTxn():
-        pass
+        return self.nextTxn
     # the id of the txn
     def hash():
-        pass
+        return self.mRootHash
 
 #TODO: Jeremy
 class Maybe():

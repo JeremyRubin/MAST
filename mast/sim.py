@@ -1,86 +1,133 @@
+import random
 import mast
+
 #TODO: Nitya
-class GlobalConsnesus:
+class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
-    ledger = []
+    self.ledger = []
     @classmethod
     def consensus_tick(cls, nodes):
-        pass
+        update_ledger(nodes)
+
+    def update_ledger(nodes):
+        for node in nodes:
+            for entry in node.ledger_copy:
+                if entry not in self.ledger:
+                    self.ledger.push(entry)
+
     # run global consensus, update ledger
 
 class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
-    def __init__(GlobalConsnesu):
-        ledger
+    def __init__(GlobalConsensus):
+        self.ledger_copy = GlobalConsensus.ledger
+        self.txn_queue = []
 
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
-        pass
+        if c not in self.ledger_copy:
+            self.ledger_copy.push(c)
+
     def verifyExecTxn(c, arglist): # regular hash c
         #  obvi
         #    execute txn
-        pass
+        c.execute(arglist)
+        #TODO: what is returned here? How do we know if valid?
+
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick():
-        #runs a tick of simulation 
-        pass
+        for c, arglist in self.txn_queue:
+            verifyExecTxn(c, arglist)
+            #TODO: what is returned? How to know if valid?
+
     def useGlobalConsensus(ledger):
         # sync with global
-        pass
-    def recieve(self, hash, arglist):
-        # recieve should add to processing queue
-        pass
+        self.ledger_copy = GlobalConsensus.ledger
+
+    def receive(self, c, arglist):
+        # receive should add to processing queue
+        self.txn_queue.push((c,arglist))
 
 
 class GoodNode(ConsensusNode):
     #faithful impl of methods
-    pass
-class EvilNode(ConsensuseNode):
+    
+    
+
+class EvilNode(ConsensusNode):
     # tries to inject bad things into consensus
-    pass
+    def includeTxn(self, c): # SignedHash c
+        #malicious, if c is already in ledger, remove the item from ledger
+        if c in self.ledger_copy:
+            self.ledger_copy.pop(c)
+
 class InconsistentNode(ConsensusNode):
     # unpredictably behaves like either a goodnode or evilnode
-    pass
+    def includeTxn(self, c): # SignedHash c
+        #inconsistent, add c to the ledger probablistically
+        if c not in self.ledger_copy:
+            if random.random() > 0.5:
+                self.ledger_copy.push(c)
 
 #TODO: Manali
-class SignedHash:
-    # Implement this as a linked-list with a base case hash, and 
+class SignedHash():
+    # A linked-list with a base case hash, and 
     # as for the key function, just use a unique identifier 
     def __init__(self, nestedSignedHash):
-        pass        
+        self.val = nestedSignedHash
+        self.next = None
     def hash(self):
-        pass
+        cur = self
+        while cur.next:
+            cur = cur.next
+        return cur.val
     def sign(self, pubKey):
-        pass
-    def signedBy(self):
-        pass
+        self.next = self.val
+        self.val = pubKey
+    def signedBy(self, pubKey):
+        cur = self
+        while cur.next:
+            if cur.val == pubKey:
+                return True
+            cur = cur.next
+        return False
 
 class Signatory():
-    # This is a enttity which builds contracts. They can 'sign' strings with their pubKey
+    # This is an entity which builds contracts. They can 'sign' strings with their pubKey
     # And we can see if they signed a string
-    def __init__(self):
-        self.pubKey  = ?
-        self.__secKey__ = ?
+    def __init__(self, id):
+        self.pubKey  = id
+        self.__secKey__ = id
     def __sign__(string):
-        pass
-    def checkSig(string):
+        return SignedHash(string).sign(self.pubKey)
+    def checkSig(signed_hash):
+        return signed_hash.signedBy(self.pubKey)
 
 class Txn():
     # The main deal for a contract
-    def __init__(data):
-        pass
+    def __init__(self, mRootHash):
+        self.mRootHash = mRootHash
+        self.nextTxn = None
     # run the prelude
-    def execute(self, [arglist]):
-        pass
+    def execute(self, args):
+        signature  = args.pop()
+        if hash(tuple(args)) != signature.hash():
+            return Invalid()
+        pl = args[0] # prooflist for mRootHash
+        cl = args[1] # list of branches to Execute
+        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args?
+        self.nextTxn = ret
+        if not ret:
+            raise ValueError("Invalid ret")
     # the result of Execute
     def nextTxn():
-        pass
+        return self.nextTxn
     # the id of the txn
     def hash():
-        pass
+        return self.mRootHash
 
 #TODO: Jeremy
 class Maybe():

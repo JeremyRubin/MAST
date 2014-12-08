@@ -21,7 +21,7 @@ class GlobalConsensus():
 class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
-    def __init__(GlobalConsensus):
+    def __init__(self, GlobalConsensus):
         self.ledger_copy = GlobalConsensus.ledger
         self.txn_queue = []
 
@@ -30,20 +30,19 @@ class ConsensusNode():
         if c not in self.ledger_copy:
             self.ledger_copy.push(c)
 
-    def verifyExecTxn(c, arglist): # regular hash c
-        #  obvi
-        #    execute txn
+    def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
+        return c.nextTxn().isValid()
         #TODO: what is returned here? How do we know if valid?
 
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
-    def tick():
+    def tick(self):
         for c, arglist in self.txn_queue:
-            verifyExecTxn(c, arglist)
-            #TODO: what is returned? How to know if valid?
+            if not verifyExecTxn(c, arglist):
+                print "invalid argument", c, arglist
 
-    def useGlobalConsensus(ledger):
+    def useGlobalConsensus(self,ledger):
         # sync with global
         self.ledger_copy = GlobalConsensus.ledger
 

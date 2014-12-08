@@ -140,7 +140,6 @@ class Mast():
             else:
                 end_pl = pl[-1][-1]
             inp = ishash(mroot)
-            
         return True
 
 
@@ -222,7 +221,7 @@ class __Content__():
     Calling convention:
         All communication should be with a global IO object, which has some special methods
     """
-    allowed_type = set([Mast, str])
+    allowed_type = set([str])
     def __init__(self, raw, mode):
         self.mode = mode
         if not any(map(lambda x: isinstance(raw, x), __Content__.allowed_type)):

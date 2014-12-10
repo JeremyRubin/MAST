@@ -61,24 +61,24 @@ if __name__ == "__main__":
 
 
     txnstream = [[   (inittxn[0], args)     ], [ (Txn(m.hash(), 100), argsSpend) ]]
-    # TODO: Generate a txn stream which is a list of simulation frames of txns
-    # TODO: Verify behavior
     # TODO: Make interesting output for demo
     # Make Nodes
     goodNodes = [GoodNode() for x in xrange(100)] 
     badNodes = [EvilNode() for x in xrange(10)]
     inconsistentNodes = [InconsistentNode() for x in xrange(20)]
     nodes = inconsistentNodes + badNodes + goodNodes
+    print
+    print "RUN SIMULATION"
+    raw_input()
     for txnSet in txnstream:
         for (txn, args) in txnSet:
-            print args
             [n.receive(txn, copy.deepcopy(args)) for n in nodes]
         [n.tick() for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     print
     print "PROCESS COMPLETE"
     print
-    pretty(map(lambda z: map(lambda y: y.args, filter(lambda x: x.args is not None, z)), GlobalConsensus.ledger.ledger))
+    pretty(map(lambda z: map(lambda y: y.nextTxn(), filter(lambda x: x.args is not None, z)), GlobalConsensus.ledger.ledger))
     print 
     print m.hash()
 

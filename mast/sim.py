@@ -51,9 +51,12 @@ class SignedHash():
             yield cur.k
             cur = cur.next
         yield cur.k
-
+    def __str__(self):
+        return str(self.serial())
+    def __repr__(self):
+        return str(self)
     def serial(self):
-        return {'h':self.hash(),'s':list(self)}
+        return {'type':'SignedHash','h':self.hash(),'s':list(self)}
     @staticmethod
     def deserial(d):
         print d
@@ -106,6 +109,8 @@ class Txn():
             return Valid(pairs) if (0 < total) and (total <= self.amt) else Invalid()
         return ret.map(check_pred).map(lambda x: Valid([Txn(a,b) for (a,b) in x]))
 
+    def __repr__(self):
+        return "TXN: {hash:%r, args:%r, amt: %r"%(self.mRootHash, self.args, self.amt)
 
 def merkleVerifyExec(sig, mroot, args, amt):
     pr = args.pop()

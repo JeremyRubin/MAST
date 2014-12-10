@@ -14,7 +14,7 @@ def mkMerkleWill(alice, bob, carol):
     will.addBr("if (signed([%r], sig)): ret = Valid([args[-1]])"%alice)
     c = will.addBr("if (signed([%r, %r], sig)):\n"%(bob, carol))
     btwn = c.addBr("""    ret = Valid([(%r,args[0]), (%r, amnt-args[0])]) if (3 < args[0] < 10) else Invalid()"""%(nbob, ncarol))
-    gt20 = c.addBr("""    ret = Valid([(%r, amnt/2 + amnt%2),(%r, amnt/2)]) if ( 20 < args[0]) else Invalid()"""%(nbob, ncarol))
+    gt20 = c.addBr("""    ret = Valid([(%r, amnt/2 + amnt%%2),(%r, amnt/2)]) if ( 20 < args[0]) else Invalid()"""%(nbob, ncarol))
     time = will.addBr("if (dt.now() > dt(2013,1,1)) and (signed([%r]) or signed([%r])): ret = Valid(args[-1])"%(bob, carol))
     return will, time, gt20, btwn
 
@@ -26,15 +26,18 @@ if __name__ == "__main__":
     print upwardProve(proof, w.hash())
 
     print "".join(code for _, code, _ in proof[::-1])
-    print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
+    print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof], 199)
     # init users
-    signatories = set([Signatory(str(i)) for i in range(100)])
+    signatories = [Signatory(str(i)) for i in range(100)]
     #initialize txn
     inittxn = map(lambda x: Txn(normal(x.pubKey).hash(), 100), signatories)
-    pretty(inittxn)
     GlobalConsensus.init(inittxn)
     #initialize txnstream
-    txnstream = []
+    m, time, gt20, btwn = mkMerkleWill(signatories[0], signatories[30],signatories[5])
+    args = [(m.hash(), 100)]
+    sig = crypto.hash("".join(map(str, args)))
+    args.append(SignedHash(sig, signatories[0]))
+    txnstream = [[   (inittxn[0], args)     ]]
     # TODO: Generate a txn stream which is a list of simulation frames of txns
     # TODO: Verify behavior
     # TODO: Make interesting output for demo
@@ -44,8 +47,8 @@ if __name__ == "__main__":
     inconsistentNodes = [InconsistentNode() for x in xrange(20)]
     nodes = inconsistentNodes + badNodes + goodNodes
     for txnSet in txnstream:
-        for txn in txnSet:
-            [n.receive(txn) for n in nodes]
+        for (txn, args) in txnSet:
+            [n.receive(txn, args) for n in nodes]
         [n.tick() for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     GlobalConsensus.consensus_tick(goodNodes)

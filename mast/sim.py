@@ -29,7 +29,7 @@ class GlobalConsensus():
         cls.update_ledger(nodes)
     @classmethod
     def update_ledger(cls, nodes):
-        cls.ledger.addtxn( collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
+        cls.ledger.addtxn(collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
 
 
     # run global consensus, update ledger

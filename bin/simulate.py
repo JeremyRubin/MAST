@@ -25,14 +25,17 @@ if __name__ == "__main__":
 
     print "".join(code for _, code, _ in proof[::-1])
     print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
-    #initialize normal
+    # init users
+    signatories = set([Signatory(str(i)) for i in range(100)])
+    #initialize txn
     inittxn = map(lambda x: Txn(normal(x.pubKey).hash(), 100), signatories)
+    pretty(inittxn)
+    GlobalConsensus.init(inittxn)
     #initialize txnstream
     txnstream = []
     # TODO: Finish writing the will
     # TODO: Generate a txn stream which is a list of simulation frames of txns
     # TODO: Generate a set of signatories
-    Signatories = set([Signatories(str(i)) for i in range(100)])
     # TODO: Genrate an initial state of TXN's (GlobalConsensus init) for the signatories 
     # TODO: Verify behavior
     # TODO: Make interesting output for demo

@@ -186,6 +186,11 @@ class Invalid(Maybe):
 def merkleVerify(mroot, args):
     pr = args.pop()
     if mast.Mast.upwardProve(pr):
-        code = "".join(code for _, code, _ in pr[::-1])
-        exec code
-    return ret
+        try:
+            code = "".join(code for _, code, _ in pr[::-1])
+            exec code
+            return ret
+        except:
+            return Invalid()
+    else:
+        return Invalid()

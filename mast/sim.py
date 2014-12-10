@@ -155,7 +155,7 @@ class Txn():
         def check_pred(pairs):
             total = sum([pair[1] for pair in pairs])
             return Valid(pairs) if (0 < total) and (total <= self.amnt) else Invalid()
-        return ret.map(check_pred).map(lambda x: map([Txn(a,b) for (a,b) in x]))s
+        return ret.map(check_pred).map(lambda x: map([Txn(a,b) for (a,b) in x]))
 
 #TODO: Jeremy
 class Maybe():

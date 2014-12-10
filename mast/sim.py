@@ -136,9 +136,10 @@ class Signatory():
 
 class Txn():
     # The main deal for a contract
-    def __init__(self, mRootHash):
+    def __init__(self, mRootHash, amt):
         self.mRootHash = mRootHash
         self.nextTxn = None
+        self.amt = amt
     # run the prelude
     def execute(self, args):
         signature  = args.pop()

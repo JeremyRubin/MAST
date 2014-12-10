@@ -27,6 +27,7 @@ if __name__ == "__main__":
     print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
+    # TODO: Finish writing the will
     # TODO: Generate a txn stream which is a list of simulation frames of txns
     # TODO: Generate a set of signatories
     Signatories = set([Signatories(str(i)) for i in range(100)])

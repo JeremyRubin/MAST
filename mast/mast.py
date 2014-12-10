@@ -2,6 +2,55 @@ from crypto import *
 import crypto
 import io
 from io import *
+
+def indent(s):
+    return "    "+"\n    ".join(s.split('\n'))
+class MerkleNode():
+    def __init__(self, data, parent=None, c1=None, c2=None):
+        self.parent = parent
+        self.data = data
+        self.c1 = c1
+        self.c2 = c2
+    def hash(self):
+        return self.data.hash()
+    def __str__(self):
+        return "%s\n%s\n%s"%(str(self.data), indent(str(self.c1)), indent(str(self.c2)))
+class MerkleTreeList():
+    def __init__(self, items):
+        self.items = [MerkleNode(i) for i in items]
+        things = list(self.items)
+        if len(things) == 0:
+            raise ValueError("Cannot Construct Merkle Tree with empty list")
+        while things:
+            fst = things.pop(0)
+            if things:
+                snd = things.pop(0)
+                p = MerkleNode(crypto.hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
+                snd.parent = p
+                fst.parent = p
+                things.append(p)
+            else:
+                self.node = fst
+                if fst.hash()[:2] == 'c2': print "IS A MERKLE NODE", fst.hash(), snd.hash()
+                break
+    def __str__(self):
+        return str(self.node)
+    def hash(self):
+        return self.node.hash()
+    def proofList(self, item):
+        """Provide the minimum set of hashes needed to prove hash's existence"""
+        f = MerkleNode(item)
+        h = f.hash()
+        filt = (filter(lambda x: h == x.hash(), self.items))
+        if len(filt) == 0:
+            raise ValueError("Not Found")
+        else:
+            result = []
+            f = filt[0]
+            while f.parent is not None:
+                f = f.parent
+                result.append((f.c1.hash(), f.c2.hash()))
+            return result
 class Mast():
 
     def __init__(self, mode, content, parent=None, initialChildren=None, honest=True, addNonces=False, debug=True, leaf=False):
@@ -10,6 +59,7 @@ class Mast():
             raise ValueError("Mode not in %s "%modes)
         self.mode = mode
         self.content = __Content__(content, mode)
+        print self.content.hash(), hashable(self.content.code).hash()
         self.parent = parent
         self.honest = honest
         self.addNonces = addNonces
@@ -138,29 +188,13 @@ class Mast():
         pl = parent.__getChildProofList(child.hash())
         data = child.content.code
         proofs.append( (pl, data, mroot) )
-        proofs.append( ([(parent.content.hash(), parent.childrenHash() )]  , parent.content.code, merkleRoot))
+        print "PCODE",parent.content.code
+        print parent.content.hash() == hashable(parent.content.code).hash(), merkleRoot == crypto.hash(parent.childrenHash()+ parent.content.hash())
+        print "$$$$$$$$$"
+        print merkleRoot, parent.content.hash()
+        proofs.append( ([(parent.childrenHash(),parent.content.hash() )], parent.content.code, merkleRoot))
+
         return proofs
-    # Given a megaproof from generateFullProofUpward,
-    # Verify all of the content is correct and everying can be proved
-    @staticmethod
-    def upwardProve(megaproof):
-        (_,a,lastHash) = megaproof[0]
-        inp = hashable(a)
-        end_pl = False
-        count = 0
-        for pl, data, mroot in megaproof:
-            print count
-            count += 1
-            if not (prove(pl, inp, mroot) and (hashable(data).hash() == end_pl if end_pl else True)):
-                return False
-            else:
-                end_pl = pl[-1][-1]
-            inp = ishash(mroot)
-        return True
-
-
-
-
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
         return "%s\nMerkle Root:%s\n%s%s"%( str(self.content)
@@ -174,61 +208,36 @@ class Mast():
             pass    #TODO
         else:
             pass    #TODO
-def indent(s):
-    return "    "+"\n    ".join(s.split('\n'))
-class MerkleNode():
-    def __init__(self, data, parent=None, c1=None, c2=None):
-        self.parent = parent
-        self.data = data
-        self.c1 = c1
-        self.c2 = c2
-    def hash(self):
-        return self.data.hash()
-    def __str__(self):
-        return "%s\n%s\n%s"%(str(self.data), indent(str(self.c1)), indent(str(self.c2)))
-class MerkleTreeList():
-    def __init__(self, items):
-        self.items = [MerkleNode(i) for i in items]
-        things = list(self.items)
-        if len(things) == 0:
-            raise ValueError("Cannot Construct Merkle Tree with empty list")
-        while things:
-            fst = things.pop(0)
-            if things:
-                snd = things.pop(0)
-                p = MerkleNode(crypto.hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
-                snd.parent = p
-                fst.parent = p
-                things.append(p)
-            else:
-                self.node = fst
-                break
-    def __str__(self):
-        return str(self.node)
-    def hash(self):
-        return self.node.hash()
-    def proofList(self, item):
-        """Provide the minimum set of hashes needed to prove hash's existence"""
-        f = MerkleNode(item)
-        h = f.hash()
-        filt = (filter(lambda x: h == x.hash(), self.items))
-        if len(filt) == 0:
-            raise ValueError("Not Found")
-        else:
-            result = []
-            f = filt[0]
-            while f.parent is not None:
-                f = f.parent
-                result.append((f.c1.hash(), f.c2.hash()))
-            return result
-def prove(proofList, data, mroot):
+def prove(proofList, data, mroot, debug=False):
+    if debug: print data
     lastHash = data.hash()
+    if debug: print data.hash()
     for c1, c2 in proofList:
+        if debug:
+            print "HI NITYA"
+            print c1, c2, lastHash
+            print crypto.hashable(c1+c2).hash()
+
         if lastHash not in [c1,c2]:
             return False
         lastHash = crypto.hashable(c1+c2).hash()
     return lastHash == mroot
 
+# Given a megaproof from generateFullProofUpward,
+# Verify all of the content is correct and everying can be proved
+def upwardProve(megaproof):
+    (_,a,lastHash) = megaproof[0]
+    inp = hashable(a)
+    end_pl = False
+    for pl, data, mroot in megaproof:
+        if not  ((prove(pl, inp, mroot) and (hashable(data).hash() == end_pl if end_pl else True))):
+            print prove(pl, inp, mroot, debug=True)
+            return False
+        else:
+            end_pl = pl[-1][-1]
+        inp = ishash(mroot)
+        print inp
+    return True
 
 class __Content__():
     """
@@ -245,7 +254,7 @@ class __Content__():
         if mode == "compile":
             self.code = raw
             if isinstance(raw,str):
-                self._hash = crypto.hash(raw)
+                self._hash = hashable(raw).hash()
             else:
                 self._hash = raw.hash()
         if mode == "run":

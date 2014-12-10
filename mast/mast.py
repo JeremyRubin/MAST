@@ -147,7 +147,10 @@ class Mast():
         (_,a,lastHash) = megaproof[0]
         inp = hashable(a)
         end_pl = False
+        count = 0
         for pl, data, mroot in megaproof:
+            print count
+            count += 1
             if not (prove(pl, inp, mroot) and (hashable(data).hash() == end_pl if end_pl else True)):
                 return False
             else:

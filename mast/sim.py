@@ -147,7 +147,7 @@ class Txn():
     # run the prelude
     def execute(self, args):
         signature  = args.pop()
-        if crypto.hash(tuple(args)) != signature.hash():
+        if crypto.hash("".join(map(str, args))) != signature.hash():
             self.nextTxn = Invalid()
             return
         # args[0] - prooflist for mRootHash
@@ -200,8 +200,11 @@ def merkleVerifyExec(sig, mroot, args):
     if mast.Mast.upwardProve(pr):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
-            exec code in {}, d
-            return ret
+            glob = {"signed":signed, "dt":dt}
+            loc = {}
+            print loc, glob
+            exec code in glob, loc
+            return glob['ret']
         except Exception as e:
             print "merkleVerify fails with:%s"%e
             return Invalid()

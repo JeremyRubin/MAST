@@ -5,7 +5,6 @@ import collections
 import crypto
 from pprint import pprint as pretty
 from maybetypes import *
-from nodes import *
 
 #TODO: Nitya
 class Ledger():

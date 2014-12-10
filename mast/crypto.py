@@ -18,6 +18,9 @@ class ishash:
 def hash(s):
     return sha256(s).digest().encode('hex')
 
+def hashArr(arr):
+    return hash("".join(map(str, arr)))
+
 def verify(c, h):
     return hash(c) == h
 

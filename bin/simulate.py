@@ -5,15 +5,17 @@ from pprint import pprint as pretty
 def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
 def normal(key):
-    return mkM("if (signed(%r, sig)):\n"
+    return mkM("if (signed([%r], sig)):\n"
                "    ret = Valid(args[-1])"%key)
 def mkMerkleWill(alice, bob, carol):
+    nbob = normal(bob)
+    ncarol = normal(carol)
     will = mkM("ret=10\n")
-    will.addBr("if (signed(%r, sig)): ret = Valid([args[-1]])"%alice)
+    will.addBr("if (signed([%r], sig)): ret = Valid([args[-1]])"%alice)
     c = will.addBr("if (signed([%r, %r], sig)):\n"%(bob, carol))
-    btwn = c.addBr("    ret = Valid([]) if (3 < args[0] < 10) else Invalid()")
-    gt20 = c.addBr("    ret = Valid() if ( 20 < args[0]) else Invalid()")
-    time = will.addBr("if (dt.now() > dt(2013,0,0)) and (signed([%r]) or signed([%r])): ret = Valid(args[-1])"%(bob, carol))
+    btwn = c.addBr("""    ret = Valid([(%r,args[0]), (%r, amnt-args[0])]) if (3 < args[0] < 10) else Invalid()"""%(nbob, ncarol))
+    gt20 = c.addBr("""    ret = Valid([(%r, amnt/2 + amnt%2),(%r, amnt/2)]) if ( 20 < args[0]) else Invalid()"""%(nbob, ncarol))
+    time = will.addBr("if (dt.now() > dt(2013,1,1)) and (signed([%r]) or signed([%r])): ret = Valid(args[-1])"%(bob, carol))
     return will, time, gt20, btwn
 
 if __name__ == "__main__":
@@ -33,10 +35,7 @@ if __name__ == "__main__":
     GlobalConsensus.init(inittxn)
     #initialize txnstream
     txnstream = []
-    # TODO: Finish writing the will
     # TODO: Generate a txn stream which is a list of simulation frames of txns
-    # TODO: Generate a set of signatories
-    # TODO: Genrate an initial state of TXN's (GlobalConsensus init) for the signatories 
     # TODO: Verify behavior
     # TODO: Make interesting output for demo
     # Make Nodes

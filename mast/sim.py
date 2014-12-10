@@ -3,6 +3,7 @@ import mast
 import copy 
 import collections
 import crypto
+from pprint import pprint as pretty
 from maybetypes import *
 
 #TODO: Nitya
@@ -101,14 +102,13 @@ def merkleVerifyExec(sig, mroot, args):
     # Set up API
     from datetime import datetime as dt
     signed = lambda key, sig: frozenset(key) <= frozenset(SignedHash.deserial(sig)) # test that key is a subset
-    if mast.Mast.upwardProve(pr, mroot):
+    if mast.upwardProve(pr, mroot):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
-            glob = {"signed":signed, "dt":dt}
+            glob = {"signed":signed, "dt":dt, "sig":sig, "args":args}
             loc = {}
-            print loc, glob
             exec code in glob, loc
-            return glob['ret']
+            return loc['ret'] if 'ret' in loc else Invalid()
         except Exception as e:
             print "merkleVerify fails with:%s"%e
             return Invalid()

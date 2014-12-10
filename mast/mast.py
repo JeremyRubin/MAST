@@ -26,7 +26,6 @@ class MerkleTreeList():
             if things:
                 snd = things.pop(0)
                 p = MerkleNode(crypto.hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
-                if p.hash()[:8] == 'c2ee0aca': print "IS A MERKLE NODE", fst.hash(), snd.hash()
                 snd.parent = p
                 fst.parent = p
                 things.append(p)

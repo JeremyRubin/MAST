@@ -1,5 +1,6 @@
 from mast.sim import *
 from mast.mast import *
+from mast.nodes import *
 from pprint import pprint as pretty
 def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
@@ -7,7 +8,7 @@ def normal(key):
     return mkM("if (signed(%r, sig)):\n"
                "    ret = Valid([args[-1]])"%key)
 def mkMerkleWill(alice, bob, carol):
-    will = mkM("print 'begin'\n")
+    will = mkM("ret=10\n")
     will.addBr("if (signed(%r, sig)): ret = Valid([args[-1]])"%alice)
     c = will.addBr("if (signed([%r, %r], sig)):\n"%(bob, carol))
     btwn = c.addBr("    ret = Valid([]) if (3 < args[0] < 10) else Invalid()")
@@ -21,8 +22,7 @@ if __name__ == "__main__":
     print upwardProve(proof, w.hash())
 
     print "".join(code for _, code, _ in proof[::-1])
-    """
-    # print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
+    print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
 
@@ -37,4 +37,3 @@ if __name__ == "__main__":
         [n.tick() for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     GlobalConsensus.consensus_tick(goodNodes)
-    """

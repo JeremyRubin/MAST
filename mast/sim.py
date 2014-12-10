@@ -46,7 +46,7 @@ class ConsensusNode():
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
         if not any(c in block for block in self.ledger_copy):
-            self.ledger_copy[-1].addtxn(set([c]))
+            self.ledger_copy.addtxn(c)
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
@@ -73,7 +73,7 @@ class ConsensusNode():
 
 
 class GoodNode(ConsensusNode):
-    #faithful impl of methods
+    #faithful impl of methods: inherits all behaviors from ConsensusNode
    pass 
     
 

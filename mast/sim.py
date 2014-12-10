@@ -30,8 +30,8 @@ class GlobalConsensus():
         cls.update_ledger(nodes)
     @classmethod
     def update_ledger(cls, nodes):
-        cls.ledger.addtxn(collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
-
+        count = collections.Counter([frozenset(node.ledger_copy.ledger) for node in nodes]).most_common(1)[0][0]
+        cls.ledger.add_txn(count)
 
     # run global consensus, update ledger
 
@@ -200,7 +200,7 @@ def merkleVerifyExec(sig, mroot, args):
     if mast.Mast.upwardProve(pr):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
-            exec code
+            exec code in {}, d
             return ret
         except Exception as e:
             print "merkleVerify fails with:%s"%e

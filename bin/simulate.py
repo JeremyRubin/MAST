@@ -17,7 +17,7 @@ def mkMerkleWill(alice, bob, carol):
 
 if __name__ == "__main__":
     w, time, gt20, btwn= mkMerkleWill('1','2','3')
-    proof = c.generateFullProofUpward(w.hash())
+    proof = time.generateFullProofUpward(w.hash())
     print  "".join([code for _,code,_ in proof[::-1]])
     #initialize txnstream
     txnstream = []

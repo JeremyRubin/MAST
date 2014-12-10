@@ -171,8 +171,9 @@ class Ledger():
 def merkleVerify(mroot, args):
     pr = args.pop()
     if mast.Mast.upwardProve(pr):
-        for _, code, _ in pr:
-            exec code
+        code = "".join(code for _, code, _ in pr)
+        print code
+        exec code
     return ret
 prelude = """
 signature  = a.pop()

@@ -58,7 +58,9 @@ class ConsensusNode():
     def tick(self):
         self.ledger_copy.add_txn(set())
         for c, arglist in self.txn_queue:
-            if not verifyExecTxn(c, arglist):
+            if self.verifyExecTxn(c, arglist):
+                self.includeTxn(c)
+            else:
                 print "invalid argument", c, arglist
 
     def useGlobalConsensus(self,ledger):
@@ -129,9 +131,10 @@ class Signatory():
 
 class Txn():
     # The main deal for a contract
-    def __init__(self, mRootHash):
+    def __init__(self, mRootHash, amt):
         self.mRootHash = mRootHash
         self.nextTxn = None
+        self.amt = amt
     # run the prelude
     def execute(self, args):
         signature  = args.pop()
@@ -141,27 +144,20 @@ class Txn():
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
         ret = merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
-        self.nextTxn = ret
         if not ret:
             raise ValueError("Invalid ret")
+        self.nextTxn = verify(ret)
     # the result of Execute
     def nextTxn():
         return self.nextTxn
     # the id of the txn
     def hash():
         return self.mRootHash
-    def verify():   #TODO: Moved from old verifyExecTxn
-        if c.nextTxn().isValid():
-            #TODO
-            pairs = c.nextTxn().value
-            for contract,amnt in pairs:
-                
-            if (0 < sum(amnt)) and (sum(amnt)<= c.amnt): 
-                return [constr Txn]
-            else:
-                return False
-        else:
-            return False
+    def verify(ret):
+        def check_pred(pairs):
+            total = sum([pair[1] for pair in pairs])
+            return Valid(pairs) if (0 < total) and (total <= self.amnt) else Invalid()
+        return ret.map(check_pred).map(lambda x: map([Txn(a,b) for (a,b) in x]))
 
 #TODO: Jeremy
 class Maybe():
@@ -190,6 +186,11 @@ class Invalid(Maybe):
 def merkleVerify(mroot, args):
     pr = args.pop()
     if mast.Mast.upwardProve(pr):
-        code = "".join(code for _, code, _ in pr[::-1])
-        exec code
-    return ret
+        try:
+            code = "".join(code for _, code, _ in pr[::-1])
+            exec code
+            return ret
+        except:
+            return Invalid()
+    else:
+        return Invalid()

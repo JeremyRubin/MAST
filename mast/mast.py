@@ -2,7 +2,7 @@ from crypto import *
 import crypto
 import io
 from io import *
-
+from pprint import pprint as pretty
 def indent(s):
     return "    "+"\n    ".join(s.split('\n'))
 class MerkleNode():
@@ -26,12 +26,12 @@ class MerkleTreeList():
             if things:
                 snd = things.pop(0)
                 p = MerkleNode(crypto.hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
+                if p.hash()[:8] == 'c2ee0aca': print "IS A MERKLE NODE", fst.hash(), snd.hash()
                 snd.parent = p
                 fst.parent = p
                 things.append(p)
             else:
                 self.node = fst
-                if fst.hash()[:2] == 'c2': print "IS A MERKLE NODE", fst.hash(), snd.hash()
                 break
     def __str__(self):
         return str(self.node)
@@ -192,8 +192,8 @@ class Mast():
         print parent.content.hash() == hashable(parent.content.code).hash(), merkleRoot == crypto.hash(parent.childrenHash()+ parent.content.hash())
         print "$$$$$$$$$"
         print merkleRoot, parent.content.hash()
-        proofs.append( ([(parent.childrenHash(),parent.content.hash() )], parent.content.code, merkleRoot))
 
+        proofs.append(("",parent.content.code,""))
         return proofs
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
@@ -208,36 +208,57 @@ class Mast():
             pass    #TODO
         else:
             pass    #TODO
-def prove(proofList, data, mroot, debug=False):
-    if debug: print data
-    lastHash = data.hash()
-    if debug: print data.hash()
-    for c1, c2 in proofList:
-        if debug:
-            print "HI NITYA"
-            print c1, c2, lastHash
-            print crypto.hashable(c1+c2).hash()
+def proveBroken(proofList, data, mroot, debug=False):
+    if debug: print "PROVE", data
+    h = mroot
+    for c1, c2 in proofList[::-1]:
+        newH = crypto.hashable(c1+c2).hash()
+        if h != newH:
+            return False
+        h = newH
+    return data.hash() in proofList[0]
 
+def prove(proofList, data, mroot, debug=False):
+    print "##### Prove Child"
+    print
+    lastHash = data.hash()
+    for c1, c2 in proofList:
+        print "c1, c2", c1, c2
+        print "lh", lastHash
         if lastHash not in [c1,c2]:
             return False
         lastHash = crypto.hashable(c1+c2).hash()
+    print "lh = mr", lastHash ==mroot
+    print
     return lastHash == mroot
 
 # Given a megaproof from generateFullProofUpward,
 # Verify all of the content is correct and everying can be proved
-def upwardProve(megaproof):
+def upwardProve(megaproof, megaroot):
+    print "###Begin Proof####"
     (_,a,lastHash) = megaproof[0]
     inp = hashable(a)
     end_pl = False
-    for pl, data, mroot in megaproof:
+    for pl, data, mroot in megaproof[:-1]:
+        print "prove from"
+        print pl[0]
+        print pl[-1]
+        print mroot
+        print inp
+        print "DATA:",data
+        print
+        pretty("PL "+str(pl))
+
         if not  ((prove(pl, inp, mroot) and (hashable(data).hash() == end_pl if end_pl else True))):
-            print prove(pl, inp, mroot, debug=True)
+            print pl, inp, mroot
+            print "###END Proof, WRONG####"
             return False
         else:
             end_pl = pl[-1][-1]
         inp = ishash(mroot)
-        print inp
-    return True
+
+    print "######END PROOF"
+    return     crypto.hashable(pl[-1][0]+pl[-1][1]).hash() == megaroot and hashable(megaproof[-1][1]).hash() in pl[-1]
 
 class __Content__():
     """

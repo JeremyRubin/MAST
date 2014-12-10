@@ -1,4 +1,5 @@
 import sys
+import traceback
 import random
 import mast
 import copy 
@@ -77,9 +78,13 @@ class Txn():
         self.mRootHash = mRootHash
         self._nextTxn = Invalid()
         self.amt = amt
+        self.args = None
     # run the prelude
     def execute(self, args):
+        print "ARRRGHS",args
+        self.args = copy.deepcopy(args)
         signature  = args.pop()
+        print signature
         if crypto.hash("".join(map(str, args))) != signature.hash():
             self.nextTxn = Invalid()
             return
@@ -116,6 +121,10 @@ def merkleVerifyExec(sig, mroot, args, amt):
             return loc['ret'] if 'ret' in loc else Invalid()
         except Exception as e:
             print "merkleVerify fails with:%s"%e
+            print code
+            traceback.print_exc(e)
+            print 
+            print 
             return Invalid()
     else:
         return Invalid()

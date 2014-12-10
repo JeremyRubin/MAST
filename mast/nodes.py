@@ -5,8 +5,12 @@ from sim import Ledger
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
-    
     ledger = Ledger()
+    @classmethod
+    def init(cls, txns):
+        for txn in txns:
+            cls.ledger.add_txn(txn)
+        cls.ledger.commit()
     @classmethod
     def consensus_tick(cls, nodes):
         cls.update_ledger(nodes)

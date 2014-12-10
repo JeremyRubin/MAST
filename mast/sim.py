@@ -1,34 +1,36 @@
 import random
 import mast
+import copy 
+import collections
+import crypto
 
 #TODO: Nitya
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
-    self.ledger = []
+    ledger = []
     @classmethod
     def consensus_tick(cls, nodes):
-        update_ledger(nodes)
+        cls.update_ledger(nodes)
+    @classmethod
+    def update_ledger(cls, nodes):
+        cls.ledger.append( collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
 
-    def update_ledger(nodes):
-        for node in nodes:
-            for entry in node.ledger_copy:
-                if entry not in self.ledger:
-                    self.ledger.push(entry)
 
     # run global consensus, update ledger
 
 class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
-    def __init__(self, GlobalConsensus):
-        self.ledger_copy = GlobalConsensus.ledger
+    def __init__(self, l=GlobalConsensus):
+        self.ledger_copy = copy.deepcopy(l.ledger)
         self.txn_queue = []
+
 
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
-        if c not in self.ledger_copy:
-            self.ledger_copy.push(c)
+        if any(c in block for block in self.ledger_copy):
+            self.ledger_copy[-1] |= set([c])
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
@@ -38,6 +40,7 @@ class ConsensusNode():
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick(self):
+        self.ledger_copy.append(set())
         for c, arglist in self.txn_queue:
             if not verifyExecTxn(c, arglist):
                 print "invalid argument", c, arglist
@@ -48,12 +51,12 @@ class ConsensusNode():
 
     def receive(self, c, arglist):
         # receive should add to processing queue
-        self.txn_queue.push((c,arglist))
+        self.txn_queue.append((c,arglist))
 
 
 class GoodNode(ConsensusNode):
     #faithful impl of methods
-    
+   pass 
     
 
 class EvilNode(ConsensusNode):
@@ -68,7 +71,7 @@ class InconsistentNode(ConsensusNode):
     def includeTxn(self, c): # SignedHash c
         #inconsistent, add c to the ledger probablistically
         if c not in self.ledger_copy:
-            if random.random() > 0.5:
+            if random.random() > 0.9:
                 self.ledger_copy.push(c)
 
 #TODO: Manali
@@ -116,11 +119,12 @@ class Txn():
     # run the prelude
     def execute(self, args):
         signature  = args.pop()
-        if hash(tuple(args)) != signature.hash():
-            return Invalid()
-        pl = args[0] # prooflist for mRootHash
-        cl = args[1] # list of branches to Execute
-        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args?
+        if crypto.hash(tuple(args)) != signature.hash():
+            self.nextTxn = Invalid()
+            return
+        # args[0] - prooflist for mRootHash
+        # args[1] - list of branches to Execute
+        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
         self.nextTxn = ret
         if not ret:
             raise ValueError("Invalid ret")
@@ -134,15 +138,20 @@ class Txn():
 #TODO: Jeremy
 class Maybe():
     # ABC for a maybe type
-    def isValid():
+    def isValid(self):
         pass
+    def __str__(self):
+        if self.isValid():
+            return "Valid(%s)"%repr(self.value)
+        else:
+            return "Invalid()"
 class Valid(Maybe):
     def __init__(self, value):
         self.value = value
-    def isValid():
+    def isValid(self):
         return True
 class Invalid(Maybe):
-    def isValid():
+    def isValid(self):
         return False
 
 class Ledger():
@@ -159,19 +168,17 @@ class Ledger():
     def sync(self, consensus):
         self.ledger[-1] = consensus[-1]
 
-# implement some consistent version from Mast.py
-def prove(a, b, c):
-    pass
-    #merkleroot matches pl
-    #pl matches cl
-def merkelVerify(merkleroot, pl, cl):
-    if prove(mekrleroot, pl, cl):
-        map(exec, cl)
+def merkleVerify(mroot, args):
+    pr = args.pop()
+    if mast.Mast.upwardProve(pr):
+        for _, code, _ in pr:
+            exec code
+    return ret
 prelude = """
 signature  = a.pop()
 if hash(a) != signature.content:
     return Invalid()
 # Args[1] is a prooflist for merklehash
 # Args[2] is the list of branches to Execute
-merkleVerify(merkelhash, args[1], args[2])
+merkleVerify(merkelhash, args[0], args[1])
 """

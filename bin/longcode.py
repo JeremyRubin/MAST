@@ -27,7 +27,7 @@ if __name__ == "__main__":
     print len("".join(code))*101*10
     pr = n.generateFullProofUpward(m.hash())
     print len(str(pr))
-    print sim.merkleVerify(m.hash(), [pr])
+    print sim.merkleVerify(None, m.hash(), [pr])
 
 
 

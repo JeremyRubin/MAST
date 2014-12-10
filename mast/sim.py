@@ -5,16 +5,31 @@ import collections
 import crypto
 
 #TODO: Nitya
+class Ledger():
+    def __init__(self):
+        self.ledger = []
+        self.tmp = set()
+    def add_txn(self, txn):
+        self.tmp.add(txn)
+    def commit(self):
+        self.ledger.append(frozenset(self.tmp))
+        self.abort()
+    def abort(self):
+        self.tmp = set()
+    def sync(self, consensus):
+        self.ledger[-1] = consensus[-1]
+
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
-    ledger = []
+    
+    ledger = Ledger()
     @classmethod
     def consensus_tick(cls, nodes):
         cls.update_ledger(nodes)
     @classmethod
     def update_ledger(cls, nodes):
-        cls.ledger.append( collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
+        cls.ledger.addtxn( collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
 
 
     # run global consensus, update ledger
@@ -29,8 +44,8 @@ class ConsensusNode():
 
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
-        if any(c in block for block in self.ledger_copy):
-            self.ledger_copy[-1] |= set([c])
+        if not any(c in block for block in self.ledger_copy):
+            self.ledger_copy[-1].addtxn(set([c]))
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
@@ -40,14 +55,14 @@ class ConsensusNode():
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick(self):
-        self.ledger_copy.append(set())
+        self.ledger_copy.add_txn(set())
         for c, arglist in self.txn_queue:
             if not verifyExecTxn(c, arglist):
                 print "invalid argument", c, arglist
 
     def useGlobalConsensus(self,ledger):
         # sync with global
-        self.ledger_copy = GlobalConsensus.ledger
+        self.ledger_copy = copy.deepcopy(ledger)
 
     def receive(self, c, arglist):
         # receive should add to processing queue
@@ -153,20 +168,6 @@ class Valid(Maybe):
 class Invalid(Maybe):
     def isValid(self):
         return False
-
-class Ledger():
-    def __init__():
-        self.ledger = []
-        self.tmp = set()
-    def add_txn(self, txn):
-        self.tmp.add(txn)
-    def commit(self):
-        self.ledger.append(frozenset(self.tmp))
-        self.abort()
-    def abort(self):
-        self.tmp = set()
-    def sync(self, consensus):
-        self.ledger[-1] = consensus[-1]
 
 def merkleVerify(mroot, args):
     pr = args.pop()

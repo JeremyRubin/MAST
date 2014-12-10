@@ -1,12 +1,11 @@
 from mast.sim import *
 from mast.mast import *
 from pprint import pprint as pretty
-def normal(key):
-    return Mast('compile',"if (signed(%r, signature)):\n"
-                          "    ret = Valid([args[-1]])"%key) 
-print normal("alice")
 def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
+def normal(key):
+    return mkM("if (signed(%r, signature)):\n"
+               "    ret = Valid([args[-1]])"%key) 
 will = Mast('compile', """
 if (signed(alice, signature)):
     # Allow alice to pass in a new txn, not hard coded(ContractTxn)

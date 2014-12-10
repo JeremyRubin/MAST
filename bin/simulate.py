@@ -17,6 +17,8 @@ def mkMerkleWill(alice, bob, carol):
     return will, time, gt20, btwn
 
 if __name__ == "__main__":
+
+    #generate will
     w, time, gt20, btwn= mkMerkleWill('1','2','3')
     proof = gt20.generateFullProofUpward(w.hash())
     print upwardProve(proof, w.hash())
@@ -25,11 +27,11 @@ if __name__ == "__main__":
     print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
-
+    
     # Make Nodes
     goodNodes = [GoodNode() for x in xrange(100)] 
     badNodes = [EvilNode() for x in xrange(10)]
-    inconsistentNodes = [InconsistentNode for x in xrange(20)]
+    inconsistentNodes = [InconsistentNode() for x in xrange(20)]
     nodes = inconsistentNodes + badNodes + goodNodes
     for txnSet in txnstream:
         for txn in txnSet:

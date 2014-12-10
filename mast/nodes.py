@@ -1,3 +1,5 @@
+import copy
+import collections
 from sim import Ledger
 
 class GlobalConsensus():

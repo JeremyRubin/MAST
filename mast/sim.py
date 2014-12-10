@@ -3,8 +3,9 @@ import mast
 import copy 
 import collections
 import crypto
-from types import *
 from pprint import pprint as pretty
+from maybetypes import *
+from nodes import *
 
 #TODO: Nitya
 class Ledger():

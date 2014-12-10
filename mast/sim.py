@@ -142,27 +142,26 @@ class Txn():
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
         ret = merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
-        self.nextTxn = ret
         if not ret:
             raise ValueError("Invalid ret")
+        self.nextTxn = verify(ret)
     # the result of Execute
     def nextTxn():
         return self.nextTxn
     # the id of the txn
     def hash():
         return self.mRootHash
-    def verify():   #TODO: Moved from old verifyExecTxn
-        if c.nextTxn().isValid():
-            #TODO
-            pairs = c.nextTxn().value
-            for contract,amnt in pairs:
-                
-            if (0 < sum(amnt)) and (sum(amnt)<= c.amnt): 
-                return [constr Txn]
+    def verify(ret):
+        if ret.isValid():
+            pairs = ret.value
+            total = sum([pair[1] for pair in pairs])
+            if (0 < sum(amnt)) and (total <= self.amnt):
+                txns = [ Txn(hash, amt) for hash, amnt in pairs]
+                return Valid(txns)
             else:
-                return False
+                return Invalid()
         else:
-            return False
+            return Invalid()
 
 #TODO: Jeremy
 class Maybe():

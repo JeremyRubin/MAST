@@ -20,9 +20,9 @@ if __name__ == "__main__":
     #generate will
     w, time, gt20, btwn= mkMerkleWill('1','2','3')
     proof = gt20.generateFullProofUpward(w.hash())
-    upwardProve(proof)
+    print upwardProve(proof, w.hash())
 
-    #determine a branch of execution
+    print "".join(code for _, code, _ in proof[::-1])
     """
     # print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream

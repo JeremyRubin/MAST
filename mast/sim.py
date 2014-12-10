@@ -41,7 +41,7 @@ class ConsensusNode():
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick(self):
-        self.ledger_copy.append(set())
+        self.ledger_copy.add_txn(set())
         for c, arglist in self.txn_queue:
             if not verifyExecTxn(c, arglist):
                 print "invalid argument", c, arglist

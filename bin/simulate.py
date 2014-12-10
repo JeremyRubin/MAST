@@ -6,7 +6,7 @@ def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
 def normal(key):
     return mkM("if (signed(%r, sig)):\n"
-               "    ret = Valid([args[-1]])"%key)
+               "    ret = Valid(args[-1])"%key)
 def mkMerkleWill(alice, bob, carol):
     will = mkM("ret=10\n")
     will.addBr("if (signed(%r, sig)): ret = Valid([args[-1]])"%alice)

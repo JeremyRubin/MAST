@@ -13,6 +13,8 @@ class ishash:
         self.data = data
     def hash(self):
         return self.data
+    def __str__(self):
+        return "{hash:%s}"%(self.data)
 def hash(s):
     return sha256(s).digest().encode('hex')
 

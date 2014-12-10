@@ -119,6 +119,7 @@ class Txn():
         signature  = args.pop()
         if crypto.hash(tuple(args)) != signature.hash():
             self.nextTxn = Invalid()
+            return
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
         merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args

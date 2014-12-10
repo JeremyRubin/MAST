@@ -3,7 +3,8 @@ import mast
 import copy 
 import collections
 import crypto
-from types import *
+from maybetypes import *
+from nodes import *
 
 #TODO: Nitya
 class Ledger():
@@ -102,7 +103,7 @@ def merkleVerifyExec(sig, mroot, args):
     # Set up API
     from datetime import datetime as dt
     signed = lambda key, sig: frozenset(key) <= frozenset(SignedHash.deserial(sig)) # test that key is a subset
-    if mast.Mast.upwardProve(pr):
+    if mast.Mast.upwardProve(pr, mroot):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
             glob = {"signed":signed, "dt":dt}

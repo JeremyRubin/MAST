@@ -18,10 +18,14 @@ def mkMerkleWill(alice, bob, carol):
     return will, time, gt20, btwn
 
 if __name__ == "__main__":
-    w, time, gt20, btwn= mkMerkleWill('1','2','3')
-    #proof = gt20.generateFullProofUpward(w.hash())
-    #upwardProve(proof)
 
+    #generate will
+    w, time, gt20, btwn= mkMerkleWill('1','2','3')
+    proof = gt20.generateFullProofUpward(w.hash())
+    print upwardProve(proof, w.hash())
+
+    print "".join(code for _, code, _ in proof[::-1])
+    """
     # print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
@@ -38,4 +42,5 @@ if __name__ == "__main__":
         [n.tick() for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     GlobalConsensus.consensus_tick(goodNodes)
+    """
 

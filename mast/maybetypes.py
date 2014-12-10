@@ -15,7 +15,7 @@ class Valid(Maybe):
     def __init__(self, value):
         self.value = value
     def map(self, fn):
-        return Valid(fn(self.value))
+        return fn(self.value)
     def isValid(self):
         return True
 

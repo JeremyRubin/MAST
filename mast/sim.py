@@ -89,7 +89,7 @@ class Txn():
         if not ret:
             raise ValueError("Invalid ret")
         print ret
-        self.nextTxn = self.verify(ret)
+        self._nextTxn = self.verify(ret)
     # the result of Execute
     def nextTxn(self):
         return self._nextTxn
@@ -98,8 +98,8 @@ class Txn():
     def verify(self, ret):
         def check_pred(pairs):
             total = sum([pair[1] for pair in pairs])
-            return Valid(pairs) if (0 < total) and (total <= self.amnt) else Invalid()
-        return ret.map(check_pred).map(lambda x: map([Txn(a,b) for (a,b) in x]))
+            return Valid(pairs) if (0 < total) and (total <= self.amt) else Invalid()
+        return ret.map(check_pred).map(lambda x: Valid([Txn(a,b) for (a,b) in x]))
 
 
 def merkleVerifyExec(sig, mroot, args, amt):
@@ -110,10 +110,8 @@ def merkleVerifyExec(sig, mroot, args, amt):
     if mast.upwardProve(pr, mroot):
         code = "".join(code for _, code, _ in pr[::-1])
         try:
-            glob = {"signed":signed, "dt":dt, "sig":sig, "args":args, "amt":amt}
+            glob = {"signed":signed, "dt":dt, "sig":sig, "args":args, "amt":amt, "Valid":Valid, "Invalid":Invalid}
             loc = {}
-            print "EXECUTING"
-
             exec code in glob, loc
             return loc['ret'] if 'ret' in loc else Invalid()
         except Exception as e:

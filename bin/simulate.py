@@ -7,8 +7,8 @@ def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
 def normal(key):
     m = mkM('')
-    return m, m.addBr("print signed('0',sig)\nif (signed([%r], sig)):\n"
-               "    print 1,args\n    ret = Valid(args[-1])"%key)
+    return m, m.addBr("if (signed([%r], sig)):\n"
+                      "    ret = Valid(args[-1])"%key)
 def mkMerkleWill(alice, bob, carol):
     nbob = normal(bob)
     ncarol = normal(carol)
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     print "".join(code for _, code, _ in proof[::-1])
     args = [[(m.hash(), 100)],proof]
     sig = crypto.hash("".join(map(str, args)))
-    args.append(SignedHash(sig, signatories[0]))
+    args.append(SignedHash(sig, signatories[0].pubKey))
     txnstream = [[   (inittxn[0], args)     ]]
     # TODO: Generate a txn stream which is a list of simulation frames of txns
     # TODO: Verify behavior

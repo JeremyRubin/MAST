@@ -39,6 +39,7 @@ class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
     def __init__(self, l=GlobalConsensus):
+        self.global_ledger = l
         self.ledger_copy = copy.deepcopy(l.ledger)
         self.txn_queue = []
 
@@ -63,9 +64,9 @@ class ConsensusNode():
                 print "invalid argument", c, arglist
         self.ledger_copy.commit()
 
-    def useGlobalConsensus(self,ledger):
+    def useGlobalConsensus(self):
         # sync with global
-        self.ledger_copy = copy.deepcopy(ledger)
+        self.ledger_copy.sync(self.global_ledger)
 
     def receive(self, c, arglist):
         # receive should add to processing queue

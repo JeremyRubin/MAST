@@ -1,6 +1,7 @@
 import random
 import mast
-
+import copy 
+import collections
 #TODO: Nitya
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
@@ -8,27 +9,26 @@ class GlobalConsensus():
     ledger = []
     @classmethod
     def consensus_tick(cls, nodes):
-        update_ledger(nodes)
+        cls.update_ledger(nodes)
+    @classmethod
+    def update_ledger(cls, nodes):
+        cls.ledger.append( collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
 
-    def update_ledger(nodes):
-        for node in nodes:
-            for entry in node.ledger_copy:
-                if entry not in self.ledger:
-                    self.ledger.push(entry)
 
     # run global consensus, update ledger
 
 class ConsensusNode():
     # Simulated consensus node
     # Make a local copy of the ledger
-    def __init__(self, GlobalConsensus):
-        self.ledger_copy = GlobalConsensus.ledger
+    def __init__(self, l=GlobalConsensus):
+        self.ledger_copy = copy.deepcopy(l.ledger)
         self.txn_queue = []
+
 
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
-        if c not in self.ledger_copy:
-            self.ledger_copy.push(c)
+        if any(c in block for block in self.ledger_copy):
+            self.ledger_copy[-1] |= set([c])
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
@@ -38,6 +38,7 @@ class ConsensusNode():
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick(self):
+        self.ledger_copy.append(set())
         for c, arglist in self.txn_queue:
             if not verifyExecTxn(c, arglist):
                 print "invalid argument", c, arglist
@@ -48,7 +49,7 @@ class ConsensusNode():
 
     def receive(self, c, arglist):
         # receive should add to processing queue
-        self.txn_queue.push((c,arglist))
+        self.txn_queue.append((c,arglist))
 
 
 class GoodNode(ConsensusNode):
@@ -68,7 +69,7 @@ class InconsistentNode(ConsensusNode):
     def includeTxn(self, c): # SignedHash c
         #inconsistent, add c to the ledger probablistically
         if c not in self.ledger_copy:
-            if random.random() > 0.5:
+            if random.random() > 0.9:
                 self.ledger_copy.push(c)
 
 #TODO: Manali

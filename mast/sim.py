@@ -73,10 +73,9 @@ class ConsensusNode():
         self.txn_queue.append((c,arglist))
 
 
+#faithful impl of methods: inherits all behaviors from ConsensusNode
 class GoodNode(ConsensusNode):
-    #faithful impl of methods: inherits all behaviors from ConsensusNode
    pass 
-    
 
 class EvilNode(ConsensusNode):
     # tries to inject bad things into consensus
@@ -192,6 +191,7 @@ class Invalid(Maybe):
         return False
     def map(self, fn):
         return Invalid()
+
 def merkleVerifyExec(sig, mroot, args):
     pr = args.pop()
     # Set up API

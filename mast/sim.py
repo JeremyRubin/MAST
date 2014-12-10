@@ -71,7 +71,7 @@ class ConsensusNode():
 
 
 class GoodNode(ConsensusNode):
-    #faithful impl of methods
+    #faithful impl of methods: inherits all behaviors from ConsensusNode
    pass 
     
 

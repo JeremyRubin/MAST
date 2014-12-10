@@ -89,7 +89,7 @@ class Txn():
     def nextTxn(self):
         return self.nextTxn
     def __hash__(self):
-        return self.mRootHash
+        return int(self.mRootHash,36)
     def verify(self, ret):
         def check_pred(pairs):
             total = sum([pair[1] for pair in pairs])

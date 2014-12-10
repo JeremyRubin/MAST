@@ -2,11 +2,13 @@ from mast.sim import *
 from mast.mast import *
 from mast.nodes import *
 from pprint import pprint as pretty
+import sys
 def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
 def normal(key):
-    return mkM("if (signed([%r], sig)):\n"
-               "    ret = Valid(args[-1])"%key)
+    m = mkM('')
+    return m, m.addBr("print signed('0',sig)\nif (signed([%r], sig)):\n"
+               "    print 1,args\n    ret = Valid(args[-1])"%key)
 def mkMerkleWill(alice, bob, carol):
     nbob = normal(bob)
     ncarol = normal(carol)
@@ -19,7 +21,7 @@ def mkMerkleWill(alice, bob, carol):
     return will, time, gt20, btwn
 
 if __name__ == "__main__":
-
+    """
     #generate will
     w, time, gt20, btwn= mkMerkleWill('1','2','3')
     proof = gt20.generateFullProofUpward(w.hash())
@@ -27,14 +29,21 @@ if __name__ == "__main__":
 
     print "".join(code for _, code, _ in proof[::-1])
     print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof], 199)
+    """
     # init users
     signatories = [Signatory(str(i)) for i in range(100)]
+
     #initialize txn
-    inittxn = map(lambda x: Txn(normal(x.pubKey).hash(), 100), signatories)
+    inittxn = map(lambda x: Txn(normal(x.pubKey)[0].hash(), 100), signatories)
+
     GlobalConsensus.init(inittxn)
     #initialize txnstream
-    m, time, gt20, btwn = mkMerkleWill(signatories[0], signatories[30],signatories[5])
-    args = [(m.hash(), 100)]
+
+    m, time, gt20, btwn = mkMerkleWill(signatories[0].pubKey, signatories[30].pubKey,signatories[5].pubKey)
+    top, bot = normal(signatories[0].pubKey)
+    proof = bot.generateFullProofUpward(top.hash())
+    print "".join(code for _, code, _ in proof[::-1])
+    args = [[(m.hash(), 100)],proof]
     sig = crypto.hash("".join(map(str, args)))
     args.append(SignedHash(sig, signatories[0]))
     txnstream = [[   (inittxn[0], args)     ]]

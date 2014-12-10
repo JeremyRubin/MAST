@@ -1,3 +1,4 @@
+import sys
 import random
 import mast
 import copy 
@@ -40,7 +41,9 @@ class SignedHash():
     def sign(self, newPubKey):
         return SignedHash(self, newPubKey)
     def signedBy(self, pubKey):
-        return pubKey in self
+        return pubKey in list(self)
+    def __getitem__(self, i):
+        return list(self)[i]
     def __iter__(self):
         cur = self
         while cur.next:
@@ -52,6 +55,7 @@ class SignedHash():
         return {'h':self.hash(),'s':list(self)}
     @staticmethod
     def deserial(d):
+        print d
         s = SignedHash(d['h'],d['s'].pop())
         return reduce(lambda x,y: x.sign(y), d['s'], s)
 
@@ -71,7 +75,7 @@ class Txn():
     # The main deal for a contract
     def __init__(self, mRootHash, amt):
         self.mRootHash = mRootHash
-        self.nextTxn = None
+        self._nextTxn = Invalid()
         self.amt = amt
     # run the prelude
     def execute(self, args):
@@ -84,10 +88,11 @@ class Txn():
         ret = merkleVerifyExec(signature, self.mRootHash, args, self.amt) # defines ret when executing, pass all args
         if not ret:
             raise ValueError("Invalid ret")
+        print ret
         self.nextTxn = self.verify(ret)
     # the result of Execute
     def nextTxn(self):
-        return self.nextTxn
+        return self._nextTxn
     def __hash__(self):
         return int(self.mRootHash,36)
     def verify(self, ret):
@@ -101,12 +106,14 @@ def merkleVerifyExec(sig, mroot, args, amt):
     pr = args.pop()
     # Set up API
     from datetime import datetime as dt
-    signed = lambda key, sig: frozenset(key) <= frozenset(SignedHash.deserial(sig)) # test that key is a subset
+    signed = lambda key, user_sig: frozenset(list(key)) <= frozenset(list(user_sig)) # test that key is a subset
     if mast.upwardProve(pr, mroot):
+        code = "".join(code for _, code, _ in pr[::-1])
         try:
-            code = "".join(code for _, code, _ in pr[::-1])
             glob = {"signed":signed, "dt":dt, "sig":sig, "args":args, "amt":amt}
             loc = {}
+            print "EXECUTING"
+
             exec code in glob, loc
             return loc['ret'] if 'ret' in loc else Invalid()
         except Exception as e:

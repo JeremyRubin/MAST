@@ -26,10 +26,10 @@ if __name__ == "__main__":
     mt = mast.MerkleTreeList(m.children)
 
     orig_len = len("".join(code))*101*10.0
-    comp_len = len(str(pr))
-    pct_comp = 1 - orig_len/comp_len
     print "original length", orig_len
     pr = n.generateFullProofUpward(m.hash())
+    comp_len = len(str(pr))
+    pct_comp = 1 - orig_len/comp_len
     print "compression length", comp_len
     print "compression percentage", pct_comp
     print sim.merkleVerify(None, m.hash(), [pr])

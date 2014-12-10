@@ -1,4 +1,4 @@
-from sim.ledger import *
+from sim import Ledger
 
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
@@ -25,19 +25,20 @@ class ConsensusNode():
 
 
     def includeTxn(self, c): # SignedHash c
-        #include c in ledger if c not in ledger
-        if not any(c in block for block in self.ledger_copy):
+        #include c in ledger if c is unspent
+        if any(c in block for block in self.ledger_copy.unspent):
             self.ledger_copy.add_txn(c)
+            self.ledger_copy.unspent.remove(c)
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
         return c.nextTxn().isValid()
 
-
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick(self):
         for c, arglist in self.txn_queue:
+            self.ledger_copy.unspent.add(c)
             if self.verifyExecTxn(c, arglist):
                 self.includeTxn(c)
             else:

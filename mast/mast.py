@@ -58,7 +58,6 @@ class Mast():
             raise ValueError("Mode not in %s "%modes)
         self.mode = mode
         self.content = __Content__(content, mode)
-        print self.content.hash(), hashable(self.content.code).hash()
         self.parent = parent
         self.honest = honest
         self.addNonces = addNonces
@@ -187,10 +186,6 @@ class Mast():
         pl = parent.__getChildProofList(child.hash())
         data = child.content.code
         proofs.append( (pl, data, mroot) )
-        print "PCODE",parent.content.code
-        print parent.content.hash() == hashable(parent.content.code).hash(), merkleRoot == crypto.hash(parent.childrenHash()+ parent.content.hash())
-        print "$$$$$$$$$"
-        print merkleRoot, parent.content.hash()
 
         proofs.append(("",parent.content.code,""))
         return proofs

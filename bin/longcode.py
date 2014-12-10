@@ -32,4 +32,4 @@ if __name__ == "__main__":
     pct_comp = 1 - orig_len/comp_len
     print "compression length", comp_len
     print "compression percentage", pct_comp
-    print sim.merkleVerify(None, m.hash(), [pr])
+    print sim.merkleVerifyExec(None, m.hash(), [pr])

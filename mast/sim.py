@@ -50,15 +50,8 @@ class ConsensusNode():
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
-        if c.nextTxn().isValid():
-            #TODO
-            ([(contract, amnt)]) = c.nextTxn().value
-            0 < sum(amnt) <= c.amnt
-            return [constr Txn]
-        else:
-            return False
         return c.nextTxn().isValid()
-        #TODO: what is returned here? How do we know if valid?
+
 
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
@@ -157,6 +150,18 @@ class Txn():
     # the id of the txn
     def hash():
         return self.mRootHash
+    def verify():   #TODO: Moved from old verifyExecTxn
+        if c.nextTxn().isValid():
+            #TODO
+            pairs = c.nextTxn().value
+            for contract,amnt in pairs:
+                
+            if (0 < sum(amnt)) and (sum(amnt)<= c.amnt): 
+                return [constr Txn]
+            else:
+                return False
+        else:
+            return False
 
 #TODO: Jeremy
 class Maybe():

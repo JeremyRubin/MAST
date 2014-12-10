@@ -4,7 +4,6 @@ import copy
 import collections
 import crypto
 from maybetypes import *
-from nodes import *
 
 #TODO: Nitya
 class Ledger():
@@ -84,14 +83,13 @@ class Txn():
         ret = merkleVerifyExec(signature, self.mRootHash, args) # defines ret when executing, pass all args
         if not ret:
             raise ValueError("Invalid ret")
-        self.nextTxn = verify(ret)
+        self.nextTxn = self.verify(ret)
     # the result of Execute
-    def nextTxn():
+    def nextTxn(self):
         return self.nextTxn
-    # the id of the txn
-    def hash():
+    def __hash__(self):
         return self.mRootHash
-    def verify(ret):
+    def verify(self, ret):
         def check_pred(pairs):
             total = sum([pair[1] for pair in pairs])
             return Valid(pairs) if (0 < total) and (total <= self.amnt) else Invalid()

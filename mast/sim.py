@@ -152,16 +152,10 @@ class Txn():
     def hash():
         return self.mRootHash
     def verify(ret):
-        if ret.isValid():
-            pairs = ret.value
+        def check_pred(pairs):
             total = sum([pair[1] for pair in pairs])
-            if (0 < sum(amnt)) and (total <= self.amnt):
-                txns = [ Txn(hash, amt) for hash, amnt in pairs]
-                return Valid(txns)
-            else:
-                return Invalid()
-        else:
-            return Invalid()
+            return Valid(pairs) if (0 < total) and (total <= self.amnt) else Invalid()
+        return ret.map(check_pred).map(lambda x: map([Txn(a,b) for (a,b) in x]))s
 
 #TODO: Jeremy
 class Maybe():

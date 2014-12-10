@@ -30,8 +30,8 @@ class GlobalConsensus():
         cls.update_ledger(nodes)
     @classmethod
     def update_ledger(cls, nodes):
-        cls.ledger.addtxn(collections.Counter([frozenset(node.ledger_copy) for node in nodes]).most_common(1)[0][0])
-
+        count = collections.Counter([frozenset(node.ledger_copy.ledger) for node in nodes]).most_common(1)[0][0]
+        cls.ledger.add_txn(count)
 
     # run global consensus, update ledger
 
@@ -146,7 +146,7 @@ class Txn():
     # run the prelude
     def execute(self, args):
         signature  = args.pop()
-        if crypto.hash(tuple(args)) != signature.hash():
+        if crypto.hash("".join(map(str, args))) != signature.hash():
             self.nextTxn = Invalid()
             return
         # args[0] - prooflist for mRootHash
@@ -200,8 +200,11 @@ def merkleVerifyExec(sig, mroot, args):
     if mast.Mast.upwardProve(pr):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
-            exec code
-            return ret
+            glob = {"signed":signed, "dt":dt}
+            loc = {}
+            print loc, glob
+            exec code in glob, loc
+            return glob['ret']
         except Exception as e:
             print "merkleVerify fails with:%s"%e
             return Invalid()

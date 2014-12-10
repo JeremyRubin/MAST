@@ -97,27 +97,35 @@ class InconsistentNode(ConsensusNode):
 class SignedHash():
     # A linked-list with a base case hash, and 
     # as for the key function, just use a unique identifier 
-    def __init__(self, nestedSignedHash, pubKey=None):
+    def __init__(self, nestedSignedHash, pubKey):
         if isinstance(nestedSignedHash, str):
-            self.val = nestedSignedHash
+            self.h = nestedSignedHash
+            self.k = pubKey
             self.next = None
         else:
+            self.h = nestedSignedHash.h
             self.next = nestedSignedHash
-            self.val = pubKey
+            self.k = pubKey
     def hash(self):
-        cur = self
-        while cur.next:
-            cur = cur.next
-        return cur.val
+        return self.h
     def sign(self, newPubKey):
         return SignedHash(self, newPubKey)
     def signedBy(self, pubKey):
+        return pubKey in self
+    def __iter__(self):
         cur = self
         while cur.next:
-            if cur.val == pubKey:
-                return True
+            yield cur.k
             cur = cur.next
-        return False
+        yield cur.k
+
+    def serial(self):
+        return {'h':self.hash(),'s':list(self)}
+    @staticmethod
+    def deserial(d):
+        s = SignedHash(d['h'],d['s'].pop())
+        return reduce(lambda x,y: x.sign(y), d['s'], s)
+
 
 class Signatory():
     # This is an entity which builds contracts. They can 'sign' strings with their pubKey
@@ -186,6 +194,9 @@ class Invalid(Maybe):
         return Invalid()
 def merkleVerifyExec(sig, mroot, args):
     pr = args.pop()
+    # Set up API
+    from datetime import datetime as dt
+    signed = dt
     if mast.Mast.upwardProve(pr):
         try:
             code = "".join(code for _, code, _ in pr[::-1])

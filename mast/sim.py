@@ -81,7 +81,7 @@ class Txn():
             return
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
-        ret = merkleVerifyExec(signature, self.mRootHash, args) # defines ret when executing, pass all args
+        ret = merkleVerifyExec(signature, self.mRootHash, args, self.amt) # defines ret when executing, pass all args
         if not ret:
             raise ValueError("Invalid ret")
         self.nextTxn = self.verify(ret)
@@ -97,7 +97,7 @@ class Txn():
         return ret.map(check_pred).map(lambda x: map([Txn(a,b) for (a,b) in x]))
 
 
-def merkleVerifyExec(sig, mroot, args):
+def merkleVerifyExec(sig, mroot, args, amt):
     pr = args.pop()
     # Set up API
     from datetime import datetime as dt
@@ -105,7 +105,7 @@ def merkleVerifyExec(sig, mroot, args):
     if mast.upwardProve(pr, mroot):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
-            glob = {"signed":signed, "dt":dt, "sig":sig, "args":args}
+            glob = {"signed":signed, "dt":dt, "sig":sig, "args":args, "amt":amt}
             loc = {}
             exec code in glob, loc
             return loc['ret'] if 'ret' in loc else Invalid()

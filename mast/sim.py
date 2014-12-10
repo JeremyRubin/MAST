@@ -58,7 +58,9 @@ class ConsensusNode():
     def tick(self):
         self.ledger_copy.add_txn(set())
         for c, arglist in self.txn_queue:
-            if not verifyExecTxn(c, arglist):
+            if self.verifyExecTxn(c, arglist):
+                self.includeTxn(c)
+            else:
                 print "invalid argument", c, arglist
 
     def useGlobalConsensus(self,ledger):

@@ -141,7 +141,7 @@ class Txn():
             return
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
-        ret = merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
+        ret = merkleVerifyExec(signature, self.mRootHash, args) # defines ret when executing, pass all args
         if not ret:
             raise ValueError("Invalid ret")
         self.nextTxn = verify(ret)
@@ -181,14 +181,15 @@ class Invalid(Maybe):
         return False
     def map(self, fn):
         return Invalid()
-def merkleVerify(mroot, args):
+def merkleVerifyExec(sig, mroot, args):
     pr = args.pop()
     if mast.Mast.upwardProve(pr):
         try:
             code = "".join(code for _, code, _ in pr[::-1])
             exec code
             return ret
-        except:
+        except Exception as e:
+            print "merkleVerify fails with:%s"%e
             return Invalid()
     else:
         return Invalid()

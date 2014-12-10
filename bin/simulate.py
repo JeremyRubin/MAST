@@ -1,5 +1,6 @@
 from mast.sim import *
 from mast.mast import *
+from mast.nodes import *
 from pprint import pprint as pretty
 def mkM(s, ic=None):
     return Mast('compile', s, initialChildren=ic)
@@ -8,7 +9,8 @@ def normal(key):
                "    ret = Valid([args[-1]])"%key)
 def mkMerkleWill(alice, bob, carol):
     will = mkM("print 'begin'\n")
-    will.addBr("if (signed(%r, sig)): ret = Valid([args[-1]])"%alice)
+    will.addBr("if (signed(%r, sig)): ret = Invalid([])"%alice)
+    #will.addBr("if (signed(%r, sig)): ret = Valid([args[-1]])"%alice)
     c = will.addBr("if (signed([%r, %r], sig)):\n"%(bob, carol))
     btwn = c.addBr("    ret = Valid([]) if (3 < args[0] < 10) else Invalid()")
     gt20 = c.addBr("    ret = Valid() if ( 20 < args[0]) else Invalid()")
@@ -17,22 +19,23 @@ def mkMerkleWill(alice, bob, carol):
 
 if __name__ == "__main__":
     w, time, gt20, btwn= mkMerkleWill('1','2','3')
-    proof = gt20.generateFullProofUpward(w.hash())
-    upwardProve(proof)
-    """
+    #proof = gt20.generateFullProofUpward(w.hash())
+    #upwardProve(proof)
+
     # print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
+    txnstream.append(set([(Txn(w.hash(), 100), ())]))
 
     # Make Nodes
     goodNodes = [GoodNode() for x in xrange(100)] 
     badNodes = [EvilNode() for x in xrange(10)]
-    inconsistentNodes = [InconsistentNode for x in xrange(20)]
+    inconsistentNodes = [InconsistentNode() for x in xrange(20)]
     nodes = inconsistentNodes + badNodes + goodNodes
     for txnSet in txnstream:
-        for txn in txnSet:
-            [n.receive(txn) for n in nodes]
+        for pair in txnSet:
+            [n.receive(pair[0], pair[1]) for n in nodes]
         [n.tick() for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     GlobalConsensus.consensus_tick(goodNodes)
-    """
+

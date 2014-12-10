@@ -175,11 +175,3 @@ def merkleVerify(mroot, args):
         print code
         exec code
     return ret
-prelude = """
-signature  = a.pop()
-if hash(a) != signature.content:
-    return Invalid()
-# Args[1] is a prooflist for merklehash
-# Args[2] is the list of branches to Execute
-merkleVerify(merkelhash, args[0], args[1])
-"""

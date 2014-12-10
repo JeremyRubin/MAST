@@ -1,5 +1,6 @@
 import random
 import mast
+import crypto
 
 #TODO: Nitya
 class GlobalConsensus():
@@ -116,11 +117,11 @@ class Txn():
     # run the prelude
     def execute(self, args):
         signature  = args.pop()
-        if hash(tuple(args)) != signature.hash():
-            return Invalid()
-        pl = args[0] # prooflist for mRootHash
-        cl = args[1] # list of branches to Execute
-        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args?
+        if crypto.hash(tuple(args)) != signature.hash():
+            self.nextTxn = Invalid()
+        # args[0] - prooflist for mRootHash
+        # args[1] - list of branches to Execute
+        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
         self.nextTxn = ret
         if not ret:
             raise ValueError("Invalid ret")

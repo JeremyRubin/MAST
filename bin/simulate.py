@@ -29,16 +29,15 @@ if __name__ == "__main__":
     # print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
-    txnstream.append(set([(Txn(w.hash(), 100), ())]))
-
+    
     # Make Nodes
     goodNodes = [GoodNode() for x in xrange(100)] 
     badNodes = [EvilNode() for x in xrange(10)]
     inconsistentNodes = [InconsistentNode() for x in xrange(20)]
     nodes = inconsistentNodes + badNodes + goodNodes
     for txnSet in txnstream:
-        for pair in txnSet:
-            [n.receive(pair[0], pair[1]) for n in nodes]
+        for txn in txnSet:
+            [n.receive(txn) for n in nodes]
         [n.tick() for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     GlobalConsensus.consensus_tick(goodNodes)

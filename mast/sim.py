@@ -196,7 +196,7 @@ def merkleVerifyExec(sig, mroot, args):
     pr = args.pop()
     # Set up API
     from datetime import datetime as dt
-    signed = dt
+    signed = lambda key, sig: frozenset(key) <= frozenset(SignedHash.deserial(sig)) # test that key is a subset
     if mast.Mast.upwardProve(pr):
         try:
             code = "".join(code for _, code, _ in pr[::-1])

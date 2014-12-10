@@ -75,17 +75,20 @@ class InconsistentNode(ConsensusNode):
 class SignedHash():
     # A linked-list with a base case hash, and 
     # as for the key function, just use a unique identifier 
-    def __init__(self, nestedSignedHash):
-        self.val = nestedSignedHash
-        self.next = None
+    def __init__(self, nestedSignedHash, pubKey=None):
+        if isinstance(nestedSignedHash, str):
+            self.val = nestedSignedHash
+            self.next = None
+        else:
+            self.next = nestedSignedHash
+            self.val = pubKey
     def hash(self):
         cur = self
         while cur.next:
             cur = cur.next
         return cur.val
-    def sign(self, pubKey):
-        self.next = self.val
-        self.val = pubKey
+    def sign(self, newPubKey):
+        return SignedHash(self, newPubKey)
     def signedBy(self, pubKey):
         cur = self
         while cur.next:

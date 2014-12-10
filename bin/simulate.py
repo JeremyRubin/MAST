@@ -25,6 +25,8 @@ if __name__ == "__main__":
 
     print "".join(code for _, code, _ in proof[::-1])
     print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
+    #initialize normal
+    inittxn = map(lambda x: Txn(normal(x.pubKey).hash(), 100), signatories)
     #initialize txnstream
     txnstream = []
     # TODO: Finish writing the will

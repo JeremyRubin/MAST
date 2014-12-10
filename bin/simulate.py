@@ -27,7 +27,11 @@ if __name__ == "__main__":
     print merkleVerifyExec({'h':crypto.hash("".join(map(str,[1,2,3]))), 's':["a", "b", "c"]}, w.hash(), [1,2,3,proof])
     #initialize txnstream
     txnstream = []
-    
+    # TODO: Generate a txn stream which is a list of simulation frames of txns
+    # TODO: Generate a set of signatories
+    # TODO: Genrate an initial state of TXN's (GlobalConsensus init) for the signatories 
+    # TODO: Verify behavior
+    # TODO: Make interesting output for demo
     # Make Nodes
     goodNodes = [GoodNode() for x in xrange(100)] 
     badNodes = [EvilNode() for x in xrange(10)]

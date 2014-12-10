@@ -5,6 +5,20 @@ import collections
 import crypto
 
 #TODO: Nitya
+class Ledger():
+    def __init__(self):
+        self.ledger = []
+        self.tmp = set()
+    def add_txn(self, txn):
+        self.tmp.add(txn)
+    def commit(self):
+        self.ledger.append(frozenset(self.tmp))
+        self.abort()
+    def abort(self):
+        self.tmp = set()
+    def sync(self, consensus):
+        self.ledger[-1] = consensus[-1]
+
 class GlobalConsensus():
     # List of frozensets , where a[i] corresponds to the new blocks from a tick stored in a 
 # frozenset
@@ -154,20 +168,6 @@ class Valid(Maybe):
 class Invalid(Maybe):
     def isValid(self):
         return False
-
-class Ledger():
-    def __init__():
-        self.ledger = []
-        self.tmp = set()
-    def add_txn(self, txn):
-        self.tmp.add(txn)
-    def commit(self):
-        self.ledger.append(frozenset(self.tmp))
-        self.abort()
-    def abort(self):
-        self.tmp = set()
-    def sync(self, consensus):
-        self.ledger[-1] = consensus[-1]
 
 def merkleVerify(mroot, args):
     pr = args.pop()

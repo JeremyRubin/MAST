@@ -4,7 +4,7 @@ import io
 from io import *
 class Mast():
 
-    def __init__(self, mode, content, parent=None, honest=True, addNonces=False, debug=True, leaf=False):
+    def __init__(self, mode, content, parent=None, initialChildren=None, honest=True, addNonces=False, debug=True, leaf=False):
         modes = ["run","compile"]
         if mode not in modes:
             raise ValueError("Mode not in %s "%modes)
@@ -16,6 +16,8 @@ class Mast():
         self.debug = debug
         self.children = []  #TODO: make this a tree!
         self.leaf = leaf
+        if initialChildren:
+            map(self.addBr, initialChildren)
 
     #TODO: return new node
     def addBr(self, content, leaf=False):
@@ -32,6 +34,8 @@ class Mast():
         l.append(self.content)
         return MerkleTreeList(l).hash()
 
+    def childrenHash(self):
+        return MerkleTreeList(self.children).hash()
     # RUN-SIDE EXECUTION METHODS
 
     # Calling convention:
@@ -130,6 +134,11 @@ class Mast():
             parent = parent.parent
             if parent == None:
                 return None
+        mroot = parent.hash()
+        pl = parent.__getChildProofList(child.hash())
+        data = child.content.code
+        proofs.append( (pl, data, mroot) )
+        proofs.append( ([(parent.content.hash(), parent.childrenHash() )]  , parent.content.code, merkleRoot))
         return proofs
     # Given a megaproof from generateFullProofUpward,
     # Verify all of the content is correct and everying can be proved
@@ -225,27 +234,23 @@ class __Content__():
     Calling convention:
         All communication should be with a global IO object, which has some special methods
     """
-    allowed_type = set([str])
+    allowed_type = set([str, Mast])
     def __init__(self, raw, mode):
         self.mode = mode
         if not any(map(lambda x: isinstance(raw, x), __Content__.allowed_type)):
             raise ValueError("Cannot have content of this type")
         if mode == "compile":
-            if isinstance(raw, str):
-                if not self.syntax_check(raw):
-                    raise SyntaxError("Invalid syntax for content: %s"%raw)
-                self.compiled = compile(raw, '', 'exec')
-            else:
-                self.compiled = None
             self.code = raw
-            self._hash = crypto.hash(raw)
+            if isinstance(raw,str):
+                self._hash = crypto.hash(raw)
+            else:
+                self._hash = raw.hash()
         if mode == "run":
             self.code = None
             self._hash = raw
     def verifyAdd(self, s):
         if self.code == None:
             if crypto.verify(s, self._hash):
-                self.compiled = compile(s, '', 'exec')
                 self.code = s
                 return self
             else:
@@ -255,8 +260,8 @@ class __Content__():
     def execute(self, IO=None):
         if IO is None:
             IO = __IO__()
-        if self.compiled:
-            exec(self.compiled)
+        if self.code:
+            exec(self.code)
     def syntax_check(self, s):
         """ TODO: If any syntax checking/ast transforms are desired..."""
         return True

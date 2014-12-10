@@ -9,6 +9,7 @@ class Ledger():
     def __init__(self):
         self.ledger = []
         self.tmp = set()
+        self.unspent = set()#TODO
     def add_txn(self, txn):
         self.tmp.add(txn)
     def commit(self):
@@ -49,6 +50,13 @@ class ConsensusNode():
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
+        if c.nextTxn().isValid():
+            #TODO
+            ([(contract, amnt)]) = c.nextTxn().value
+            0 < sum(amnt) <= c.amnt
+            return [constr Txn]
+        else:
+            return False
         return c.nextTxn().isValid()
         #TODO: what is returned here? How do we know if valid?
 
@@ -139,7 +147,7 @@ class Txn():
             return
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
-        merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
+        ret = merkleVerify(self.mRootHash, args) # defines ret when executing, pass all args
         self.nextTxn = ret
         if not ret:
             raise ValueError("Invalid ret")
@@ -172,14 +180,6 @@ class Invalid(Maybe):
 def merkleVerify(mroot, args):
     pr = args.pop()
     if mast.Mast.upwardProve(pr):
-        for _, code, _ in pr:
-            exec code
+        code = "".join(code for _, code, _ in pr[::-1])
+        exec code
     return ret
-prelude = """
-signature  = a.pop()
-if hash(a) != signature.content:
-    return Invalid()
-# Args[1] is a prooflist for merklehash
-# Args[2] is the list of branches to Execute
-merkleVerify(merkelhash, args[0], args[1])
-"""

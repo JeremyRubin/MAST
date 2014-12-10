@@ -1,13 +1,12 @@
 from mast.sim import *
-import mast.mast as mast
-first = Mast("""
-if (signed(frank, signature)):
-    # Allow alice to pass in a new txn, not hard coded(ContractTxn)
-    ret Valid([args[-1]])
-""")
-
-
-will = Mast("""
+from mast.mast import *
+from pprint import pprint as pretty
+def mkM(s, ic=None):
+    return Mast('compile', s, initialChildren=ic)
+def normal(key):
+    return mkM("if (signed(%r, signature)):\n"
+               "    ret = Valid([args[-1]])"%key)
+will = Mast('compile', """
 if (signed(alice, signature)):
     # Allow alice to pass in a new txn, not hard coded(ContractTxn)
     ret = Valid([args[-1]])
@@ -15,29 +14,21 @@ if (signed([bob and carol], signature)):
     if (args[1] > 3 and args[1] < 10):
         ret = Valid(["output txn doing something specific"])
     #? more conditions
-if (date.time.now() > year100000)
+if (date.time.now() > year(100000)):
     ret = Valid(args[-1])
 """)
 
-
-mWill = Mast(prelude)
-map(mWill.addBr,
-["""
-if (signed(alice, signature)):
-    # Allow alice to pass in a new txn, not hard coded(ContractTxn)
-    ret = Valid([args[-1]])
-""",
-"""
-if (signed([bob and carol], signature)):
-    if (args[1] > 3 and args[1] < 10):
-        ret = Valid(["output txn doing something specific"])
-    #? more conditions
-""",
-"""
-if (date.time.now() > year100000)
-    ret = Valid(args[-1])
-"""])
-
+def mkMerkleWill(alice, bob, carol):
+    will = mkM("print 'begin'\n")
+    will.addBr("if (signed(alice, signature)): ret = Valid([args[-1]])")
+    c = will.addBr("if (signed([%r, %r], signature)):\n"%(bob, carol))
+    c.addBr("    if (3 < args[0] < 10): ret = Valid([])")
+    e = c.addBr("    ret = Valid() if ( 20 < args[0]) else Invalid()")
+    will.addBr("if (date.time.now() > year(100000)): ret = Valid(args[-1])")
+    return will, e
+w, c= mkMerkleWill('1','2','3')
+proof = c.generateFullProofUpward(w.hash())
+print  "".join([code for _,code,_ in proof[::-1]])
 
 if __name__ == "__main__":
     #initialize txnstream

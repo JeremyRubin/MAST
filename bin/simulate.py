@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # Make Nodes
     goodNodes = [GoodNode() for x in xrange(100)] 
     badNodes = [EvilNode() for x in xrange(10)]
-    inconsistentNodes = [InconsistentNode for x in xrange(20)]
+    inconsistentNodes = [InconsistentNode() for x in xrange(20)]
     nodes = inconsistentNodes + badNodes + goodNodes
     for txnSet in txnstream:
         for txn in txnSet:

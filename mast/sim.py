@@ -3,7 +3,7 @@ import mast
 import copy 
 import collections
 import crypto
-from types import *
+from maybetypes import *
 from nodes import *
 
 #TODO: Nitya

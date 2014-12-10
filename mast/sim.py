@@ -46,7 +46,7 @@ class ConsensusNode():
     def includeTxn(self, c): # SignedHash c
         #include c in ledger if c not in ledger
         if not any(c in block for block in self.ledger_copy):
-            self.ledger_copy.addtxn(c)
+            self.ledger_copy.add_txn(c)
 
     def verifyExecTxn(self, c, arglist): # regular hash c
         c.execute(arglist)
@@ -56,12 +56,12 @@ class ConsensusNode():
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
     def tick(self):
-        self.ledger_copy.add_txn(set())
         for c, arglist in self.txn_queue:
             if self.verifyExecTxn(c, arglist):
                 self.includeTxn(c)
             else:
                 print "invalid argument", c, arglist
+        self.ledger_copy.commit()
 
     def useGlobalConsensus(self,ledger):
         # sync with global

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     txnstream = []
     # TODO: Generate a txn stream which is a list of simulation frames of txns
     # TODO: Generate a set of signatories
-    Signatories = set([Signatories(i) for i in range(100)])
+    Signatories = set([Signatories(str(i)) for i in range(100)])
     # TODO: Genrate an initial state of TXN's (GlobalConsensus init) for the signatories 
     # TODO: Verify behavior
     # TODO: Make interesting output for demo

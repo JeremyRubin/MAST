@@ -3,6 +3,7 @@ import crypto
 import io
 from io import *
 from pprint import pprint as pretty
+from collections import deque
 def indent(s):
     return "    "+"\n    ".join(s.split('\n'))
 class MerkleNode():
@@ -11,20 +12,21 @@ class MerkleNode():
         self.data = data
         self.c1 = c1
         self.c2 = c2
+        self.__cached_hash__ = self.data.hash()
     def hash(self):
-        return self.data.hash()
+        return self.__cached_hash__
     def __str__(self):
         return "%s\n%s\n%s"%(str(self.data), indent(str(self.c1)), indent(str(self.c2)))
 class MerkleTreeList():
     def __init__(self, items):
         self.items = [MerkleNode(i) for i in items]
-        things = list(self.items)
+        things = deque(self.items)
         if len(things) == 0:
             raise ValueError("Cannot Construct Merkle Tree with empty list")
         while things:
-            fst = things.pop(0)
+            fst = things.popleft()
             if things:
-                snd = things.pop(0)
+                snd = things.popleft()
                 p = MerkleNode(crypto.hashable(fst.hash()+snd.hash()), c1=fst, c2=snd)
                 snd.parent = p
                 fst.parent = p
@@ -215,22 +217,24 @@ def prove(proofList, data, mroot, debug=False):
     print "mr = ", mroot
     print
     lastHash = proofList[0][0]
+    dataQ = deque(data)
     for c1, c2 in proofList:
         print "c1, c2", c1, c2, "nexthash", crypto.hashable(c1+c2)
         print "lh", lastHash
         if lastHash not in [c1,c2]:
             return False
-        if data and data[0].hash() in [c1,c2]:
-            data.pop(0)
+        if dataQ and dataQ[0].hash() in [c1,c2]:
+            dataQ.popleft()
         lastHash = crypto.hashable(c1+c2).hash()
     print "lh = mr", lastHash ==mroot
     print
-    return data==[] and lastHash == mroot
+    return (not dataQ) and lastHash == mroot
 
 # Given a megaproof from generateFullProofUpward,
 # Verify all of the content is correct and everying can be proved
 def upwardProve((proofList, data, mroot), megaroot):
     print "###Begin Proof####"
+    # THe map hashable is critical as data gets popped
     if not prove(proofList, map(hashable,data[:-1]), mroot):
         return False
     l = proofList[-1] # TODO is there a reason this can't just go into prove?

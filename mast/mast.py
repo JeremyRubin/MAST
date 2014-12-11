@@ -173,22 +173,20 @@ class Mast():
         proofs = []
         parent = self.parent
         child = self
+        pl = []
+        data = []
         while parent.hash() != merkleRoot:
-            mroot = parent.hash()
-            pl = parent.__getChildProofList(child.hash())
-            data = child.content.code
-            proofs.append( (pl, data, mroot) )
+            pl.extend(parent.__getChildProofList(child.hash()))
+            data.append(child.content.code)
             child = parent
             parent = parent.parent
             if parent == None:
                 return None
         mroot = parent.hash()
-        pl = parent.__getChildProofList(child.hash())
-        data = child.content.code
-        proofs.append( (pl, data, mroot) )
-
-        proofs.append(("",parent.content.code,""))
-        return proofs
+        pl.extend(parent.__getChildProofList(child.hash()))
+        data.append(child.content.code)
+        data.append(parent.content.code)
+        return (pl, data, mroot)
     #TODO: make this prettier? Maybe add coloring? Maybe output to a graph viewer?
     def __str__(self):
         return "%s\nMerkle Root:%s\n%s%s"%( str(self.content)
@@ -216,29 +214,27 @@ def prove(proofList, data, mroot, debug=False):
     print "##### Prove Child"
     print "mr = ", mroot
     print
-    lastHash = data.hash()
+    lastHash = proofList[0][0]
     for c1, c2 in proofList:
         print "c1, c2", c1, c2, "nexthash", crypto.hashable(c1+c2)
         print "lh", lastHash
         if lastHash not in [c1,c2]:
             return False
+        if data and data[0].hash() in [c1,c2]:
+            data.pop(0)
         lastHash = crypto.hashable(c1+c2).hash()
     print "lh = mr", lastHash ==mroot
     print
-    return lastHash == mroot
+    return data==[] and lastHash == mroot
 
 # Given a megaproof from generateFullProofUpward,
 # Verify all of the content is correct and everying can be proved
-def upwardProve(megaproof, megaroot):
+def upwardProve((proofList, data, mroot), megaroot):
     print "###Begin Proof####"
-    def flat(m):
-        for (m, _, _) in megaproof:
-            for e in m:
-                yield e
-    if not prove(flat(megaproof[:-1]), hashable(megaproof[0][1]), megaproof[-2][-1]):
+    if not prove(proofList, map(hashable,data[:-1]), mroot):
         return False
-    pl = megaproof[-2][0]
-    return     crypto.hashable(pl[-1][0]+pl[-1][1]).hash() == megaroot and hashable(megaproof[-1][1]).hash() in pl[-1]
+    l = proofList[-1] # TODO is there a reason this can't just go into prove?
+    return crypto.hashable(l[0]+l[1]).hash() == megaroot and hashable(data[-1]).hash() in l[-1]
 
 class __Content__():
     """
@@ -317,8 +313,8 @@ if __name__ == "__main__":
     pl = a.proofList(crypto.hashable(3))
     assert len(pl)==10
     print "...Proof list is log2(n_elems) long"
-    assert prove(pl, crypto.hashable(3), a.hash())
+    assert prove(pl, [crypto.hashable(3)], a.hash())
     print "...proof 1 passed, positive"
     pl[2] = ("bad","bad")
-    assert not prove(pl, crypto.hashable(3), a.hash())
+    assert not prove(pl, [crypto.hashable(3)], a.hash())
     print "...proof 2 passed, negative"

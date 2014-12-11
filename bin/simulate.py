@@ -66,7 +66,7 @@ def normal(key):
     pretty(proof[::-1])
     print
     print
-    print "".join(code for _, code, _ in proof[::-1])
+    #print "".join(code for _, code, _ in proof[::-1])
     print
     print
 
@@ -98,7 +98,7 @@ def mkMerkleWill(alice, bob, carol):
     print
     print "***ID of this TXN:", m.hash(), "***"
     print
-    print "".join(code for _, code, _ in proof2[::-1])
+    #print "".join(code for _, code, _ in proof2[::-1])
     argsSpend = [21, proof2]
     sig = crypto.hashArr(argsSpend)
     argsSpend.append(SignedHash(sig, signatories[5].pubKey).sign(signatories[30].pubKey))

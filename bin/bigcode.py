@@ -30,7 +30,7 @@ if __name__ == "__main__":
     print "Compression achieved for 100,000 branches"
     print "%f %%" % (compressed_size / initial_size)
 
-    assert mast.prove(pl, c, mt.hash())
+    assert mast.prove(pl, [c], mt.hash())
 
 
 

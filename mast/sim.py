@@ -118,7 +118,7 @@ def merkleVerifyExec(sig, mroot, args, amt):
     from datetime import datetime as dt
     signed = lambda key, user_sig: frozenset(list(key)) <= frozenset(list(user_sig)) # test that key is a subset
     if mast.upwardProve(pr, mroot):
-        code = "".join(code for _, code, _ in pr[::-1])
+        code = "".join(pr[1][::-1])
         try:
             glob = {"signed":signed, "dt":dt, "sig":sig, "args":args, "amt":amt, "Valid":Valid, "Invalid":Invalid}
             loc = {}

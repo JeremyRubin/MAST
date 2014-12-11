@@ -19,7 +19,7 @@ def pause(msg):
     print 80*"#"
     print 10*"#",20*" ",msg, 21*" ", 10*"#"
     print 80*"#"
-    raw_input()
+    #raw_input()
     print
 def mkMerkleWill(alice, bob, carol):
     nbob = normalS(bob)

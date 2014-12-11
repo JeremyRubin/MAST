@@ -214,10 +214,11 @@ def proveBroken(proofList, data, mroot, debug=False):
 
 def prove(proofList, data, mroot, debug=False):
     print "##### Prove Child"
+    print "mr = ", mroot
     print
     lastHash = data.hash()
     for c1, c2 in proofList:
-        print "c1, c2", c1, c2
+        print "c1, c2", c1, c2, "nexthash", crypto.hashable(c1+c2)
         print "lh", lastHash
         if lastHash not in [c1,c2]:
             return False
@@ -230,28 +231,13 @@ def prove(proofList, data, mroot, debug=False):
 # Verify all of the content is correct and everying can be proved
 def upwardProve(megaproof, megaroot):
     print "###Begin Proof####"
-    (_,a,lastHash) = megaproof[0]
-    inp = hashable(a)
-    end_pl = False
-    for pl, data, mroot in megaproof[:-1]:
-        print "prove from"
-        print pl[0]
-        print pl[-1]
-        print mroot
-        print inp
-        print "DATA:",data
-        print
-        pretty("PL "+str(pl))
-
-        if not  ((prove(pl, inp, mroot) and (hashable(data).hash() == end_pl if end_pl else True))):
-            print pl, inp, mroot
-            print "###END Proof, WRONG####"
-            return False
-        else:
-            end_pl = pl[-1][-1]
-        inp = ishash(mroot)
-
-    print "######END PROOF"
+    def flat(m):
+        for (m, _, _) in megaproof:
+            for e in m:
+                yield e
+    if not prove(flat(megaproof[:-1]), hashable(megaproof[0][1]), megaproof[-2][-1]):
+        return False
+    pl = megaproof[-2][0]
     return     crypto.hashable(pl[-1][0]+pl[-1][1]).hash() == megaroot and hashable(megaproof[-1][1]).hash() in pl[-1]
 
 class __Content__():

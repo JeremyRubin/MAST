@@ -19,11 +19,11 @@ class MerkleNode():
         return "%s\n%s\n%s"%(str(self.data), indent(str(self.c1)), indent(str(self.c2)))
 class MerkleTreeList():
     def __init__(self, items):
-        self.items = [MerkleNode(i) for i in items]
+        self.items = map(MerkleNode, items)
         things = deque(self.items)
         if len(things) == 0:
             raise ValueError("Cannot Construct Merkle Tree with empty list")
-        while things:
+        while True:
             fst = things.popleft()
             if things:
                 snd = things.popleft()
@@ -68,6 +68,8 @@ class Mast():
         self.leaf = leaf
         if initialChildren:
             map(self.addBr, initialChildren)
+        self.changed = True
+        self.__cached_hash__ = self.hash()
 
     #TODO: return new node
     def addBr(self, content, leaf=False):
@@ -75,14 +77,23 @@ class Mast():
             raise ValueError("Leaf node cannot have children")
         newBr = Mast(self.mode, content, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf)    #create new mast
         self.children.append(newBr)
+        self.changed=True
         return newBr
 
+    def batch_addBr(self, contents, leaf=False):
+        if self.leaf:
+            raise ValueError("Leaf node cannot have children")
+        self.changed = True
+        newBr = map(lambda c: Mast(self.mode, c, parent=self, honest=self.honest,addNonces=self.addNonces, debug=self.debug, leaf=leaf), contents)
+        self.children.extend(newBr)
+        return newBr
     def hash(self):
-        l = []
-        if self.children:
-            l.append(MerkleTreeList(self.children))
-        l.append(self.content)
-        return MerkleTreeList(l).hash()
+        if self.changed:
+            if self.children:
+                self.__cached_hash__ = MerkleTreeList([MerkleTreeList(self.children), self.content]).hash()
+            else:
+                self.__cached_hash__ = MerkleTreeList([self.content]).hash()
+        return self.__cached_hash__
 
     def childrenHash(self):
         return MerkleTreeList(self.children).hash()

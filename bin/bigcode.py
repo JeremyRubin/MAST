@@ -2,7 +2,7 @@
 import mast.mast as mast
 import mast.crypto as crypto
 import decimal as dec
-
+from pprint import pprint as pretty
 ex = """
 def testfn(x, y, z):
     if x > y:
@@ -14,16 +14,16 @@ N= 100000
 if __name__ == "__main__":
     code = list(ex%x for x in xrange(N))
     m = mast.Mast("compile", "print 1")
-    bot = None
-    for i, c in enumerate(code):
-        if i%10000 == 0:
-            print '.',
-        bot = m.addBr(c)
+    bot = m.batch_addBr(code)[-1]
     print
     print "Generating Hash"
     mh = m.hash()
     print "Hash is", mh
+    print "Generating Proof"
     proof = bot.generateFullProofUpward(mh)
+    print "proof is:"
+    pretty(proof)
+
     c = crypto.hashable(ex%60)
     dec.getcontext().prec = 30
     compressed_size = dec.Decimal(len(str(proof)))

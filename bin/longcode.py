@@ -25,8 +25,7 @@ if __name__ == "__main__":
             n.addBr(c)
         n = n.addBr(c)
     mt = mast.MerkleTreeList(m.children)
-
-    orig_len = len("".join(code))*101*20.0
+    orig_len = float(len("".join(code))*101)
     print "original length", orig_len
     pr = n.generateFullProofUpward(m.hash())
     code, _script = mast.toScript(pr, m.hash())
@@ -35,6 +34,7 @@ if __name__ == "__main__":
     pct_comp = 1 - comp_len/orig_len
     print sim.merkleVerifyExec(None, m.hash(), [pr], 10)
     print script.run("".join(map(chr,code+_script)))
+    print orig_len
     print "compression length", comp_len
     print "compression length for blockchain ready version", len(together)
     print "compression percentage", pct_comp

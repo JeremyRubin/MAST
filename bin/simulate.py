@@ -4,8 +4,8 @@ from mast.nodes import *
 from pprint import pprint as pretty
 import sys
 import copy
-def mkM(s, ic=None):
-    return Mast('compile', s, initialChildren=ic)
+def mkM(s, ic=None, debug=True):
+    return Mast('compile', s, initialChildren=ic, debug=True)
 def normal(key):
     m = mkM('#NORMAL TXN\n')
     return m, m.addBr("if (signed([%r], sig)):\n"
@@ -14,17 +14,18 @@ def normal(key):
 def normalS(key):
     return ("if (signed([%r], sig)):\n"
                       "    ret = Valid(args[-1])"%key)
-def pause(msg):
+def pause(msg, p=True, p1 = False):
 
-    print 80*"#"
-    print 10*"#",20*" ",msg, 21*" ", 10*"#"
-    print 80*"#"
-    #raw_input()
+    if p: raw_input()
+    print (len(msg)+60)*"#"
+    print 10*"#",20*" ",msg, 16*" ", 10*"#"
+    print (len(msg)+60)*"#"
+    if p1: raw_input()
     print
-def mkMerkleWill(alice, bob, carol):
+def mkMerkleWill(alice, bob, carol, debug=True):
     nbob = normalS(bob)
     ncarol = normalS(carol)
-    will = mkM("#WILL TYPE TXN\n")
+    will = mkM("#WILL TYPE TXN\n", debug=True)
     will.addBr("if (signed([%r], sig)): ret = Valid([args[-1]])"%alice)
     c = will.addBr("if (signed([%r, %r], sig)):\n"%(bob, carol))
     btwn = c.addBr("""    ret = Valid([(%r,args[0]), (%r, amt-args[0])]) if (3 < args[0] < 10) else Invalid()"""%(nbob, ncarol))
@@ -50,7 +51,7 @@ if __name__ == "__main__":
 
     GlobalConsensus.init(inittxn)
     #initialize txnstream
-    pause("Welcome to bitsim")
+    pause("Welcome to bitsim", False)
     m, time, gt20, btwn = mkMerkleWill(signatories[0].pubKey, signatories[30].pubKey,signatories[5].pubKey)
     top, bot = normal(signatories[0].pubKey)
     proof = bot.generateFullProofUpward(top.hash())
@@ -66,7 +67,7 @@ def normal(key):
     pretty(proof[::-1])
     print
     print
-    #print "".join(code for _, code, _ in proof[::-1])
+    print "".join(proof[1][::-1])
     print
     print
 
@@ -98,7 +99,7 @@ def mkMerkleWill(alice, bob, carol):
     print
     print "***ID of this TXN:", m.hash(), "***"
     print
-    #print "".join(code for _, code, _ in proof2[::-1])
+    print "".join(proof2[1][::-1])
     argsSpend = [21, proof2]
     sig = crypto.hashArr(argsSpend)
     argsSpend.append(SignedHash(sig, signatories[5].pubKey).sign(signatories[30].pubKey))
@@ -107,15 +108,16 @@ def mkMerkleWill(alice, bob, carol):
     txnstream = [[   (inittxn[0], args)     ], [ (Txn(m.hash(), 100), argsSpend) ]]
     # TODO: Make interesting output for demo
     # Make Nodes
-    goodNodes = [GoodNode() for x in xrange(100)] 
-    badNodes = [EvilNode() for x in xrange(10)]
-    inconsistentNodes = [InconsistentNode() for x in xrange(20)]
+    const = lambda x: lambda c: x()
+    goodNodes = map(const(GoodNode),xrange(100))
+    badNodes = map(const(EvilNode),xrange(10))
+    inconsistentNodes = map(const(InconsistentNode), xrange(20))
     nodes = inconsistentNodes + badNodes + goodNodes
-    pause("RUN SIMULATION")
+    pause("RUN SIMULATION", False, True)
     for txnSet in txnstream:
         for (txn, args) in txnSet:
             [n.receive(txn, copy.deepcopy(args)) for n in nodes]
-        [n.tick() for n in nodes]
+        [n.tick(debug=True) for n in nodes]
         GlobalConsensus.consensus_tick(nodes)
     print
     pause("PROCESS COMPLETE")

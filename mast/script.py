@@ -113,7 +113,7 @@ def verify(stack, inst):
     if stack[-1] == 0:
         sys.exit()
 genHandler = lambda h, bot, top: map(lambda num: (num, h(num)), xrange(bot, top+1))
-genHandlers = lambda invalidate, stack, inst: dict(chain(
+genHandlers = lambda invalidate, stack, inst,altstack: dict(chain(
 [(OP_0,lambda:(stack.append(bytes(0)),inst.next()))
 ,(OP_PUSHDATA1,lambda:(stack.append("".join([chr(inst.next()) for x in range(inst.next())])),inst.next())) #TODO
 ,(OP_PUSHDATA2,lambda:(inst.next()))#TODO
@@ -130,8 +130,8 @@ genHandlers = lambda invalidate, stack, inst: dict(chain(
 ,(OP_ENDIF,lambda:(endif(),inst.next()))
 ,(OP_VERIFY,lambda:(verify(stack,inst), invalidate() if stack[-1] == 0 else (invalidate() if stack[-1] != 1 else 0) ,inst.next()))
 ,(OP_RETURN,lambda:(invalidate(),inst.next()))
-,(OP_TOALTSTACK,lambda:(stack.pop(),inst.next())) # TODO
-,(OP_FROMALTSTACK,lambda:(0,inst.next())) # TODO
+,(OP_TOALTSTACK,lambda:(altstack.append(stack.pop()),inst.next())) # TODO
+,(OP_FROMALTSTACK,lambda:(stack.append(altstack.pop()),inst.next())) # TODO
 ,(OP_2DROP,lambda:(stack.pop(), stack.pop(),inst.next()))
 ,(OP_2DUP,lambda:(stack.append(stack[-2]), stack.append(stack[-2]),inst.next()))
 ,(OP_3DUP,lambda:(stack.append(stack[-3]), stack.append(stack[-3]), stack.append(stack[-3]),inst.next()))
@@ -213,7 +213,7 @@ genHandlers = lambda invalidate, stack, inst: dict(chain(
 
 DISABLED_OPS = set([ OP_SUBSTR, OP_LEFT, OP_RIGHT, OP_INVERT, OP_XOR,
 OP_OR, OP_AND, OP_2MUL, OP_2DIV, OP_MUL, OP_DIV, OP_LSHIFT, OP_RSHIFT])
-def run(s):
+def run(s, stack=None, altstack=None):
     inst = toInst(s)
     if_state = incrementer()
     invalid = chain(iter([1]), repeat(0))
@@ -222,14 +222,21 @@ def run(s):
     ifexec = lambda b: if_state.last.append(b)
     didifexec = lambda: if_state.last.pop
     endif = if_state.last.pop
-    stack = collections.deque()
+    if stack == None:
+        stack = collections.deque()
+    if altstack == None:
+        altstack = collections.deque()
     iinst = iter(inst)
-    handlers = genHandlers(invalidate, stack, iinst)
+    handlers = genHandlers(invalidate, stack, iinst, altstack)
     try:
         handle(handlers, iinst.next(),stack)
     except StopIteration:
-        print invalid.next() 
-        print invalid.next() 
+        if invalid.next() != 1:
+            raise Exception("Bad Txn")
+        print 123123
+        print altstack
+        if altstack.pop() == 4:
+            ("".join(altstack.pop() for _ in xrange(len(altstack))))
 def handle(h, op, s):
     import base64
     print "OPCODE", op, "STACK"

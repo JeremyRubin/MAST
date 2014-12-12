@@ -265,26 +265,43 @@ def toScript((pl, data, mroot), megaroot):
                  code.extend([OP_2DUP, OP_SHA256, OP_EQUALVERIFY, OP_DROP, OP_TOALTSTACK])
                  code.extend(putStr(c2))
                  code.extend([OP_ROT, OP_OVER, OP_EQUALVERIFY, OP_DROP, OP_CAT,OP_SHA256]) 
+                 # l
+                 # l, c1
+                 # l, c1, d
+                 # l, c1, d, c1, d
+                 # l, c1, d, c1, h(d)
+                 # l, c1, d, eq
+                 # l, c1, d
+                 # l, c1
+                 # l, c1, c2
+                 # c1, c2, l,
+                 # c1, c2, l, c1
+                 # c1, c2, eq
+                 # c1, c2
+                 # c1c2
+                 # h(c1c2)
              elif hashable(d).hash() == c2:
                  print
                  print b(c2), b(c1), b(hashable(d).hash())
                  print
                  code.extend(putStr(c1))
-                 code.extend([OP_2DUP, OP_EQUALVERIFY, OP_DROP])
+                 code.extend([OP_TUCK, OP_EQUALVERIFY, OP_DROP])
                  code.extend(putStr(c2))
                  code.extend(putStr(d))
                  code.extend([OP_2DUP, OP_SHA256, OP_EQUALVERIFY, OP_DROP, OP_TOALTSTACK, OP_CAT,OP_SHA256]) 
                  # l, c1
-                 # l, c1, l, c1
-                 # l, c1, eq
-                 # l, c1
-                 # l, c1, c2
-                 # l, c1, c2, d
-                 # l, c1, c2, d, c2, d
-                 # l, c1, c2, d, c2, h(d)
-                 # l, c1, c2, d, eq
-                 # l, c1, c2, d
-                 # l, c1, c2, d
+                 # c1,l, c1
+                 # c1, eq
+                 # c1,
+                 # c1,c2
+                 # c1,c2,d
+                 # c1,c2,d, c2, d
+                 # c1,c2,d, c2, h(d)
+                 # c1,c2,d, eq
+                 # c1,c2,d
+                 # c1,c2
+                 # c1c2
+                 # h(c1c2)
              else:
                  print c1, c2, d, hashable(d).hash()
                  raise ValueError()
@@ -297,6 +314,15 @@ def toScript((pl, data, mroot), megaroot):
                  code.extend([OP_DUP, OP_ROT, OP_EQUALVERIFY, OP_DROP])
                  code.extend(putStr(c2))
                  code.extend([OP_CAT,OP_SHA256])
+                 # l
+                 # l, c1
+                 # l, c1, c1
+                 # c1, c1, 1
+                 # c1, eq
+                 # c1
+                 # c1, c2
+                 # c1c2
+                 # h(c1c2)
              elif lastHash == c2:
                  print
                  print b(c2), b(c1), b(lastHash)
@@ -309,7 +335,10 @@ def toScript((pl, data, mroot), megaroot):
                  # l, c1, c2
                  # c1, c2, l
                  # c1, c2, l, c2
-                 # c1, c2, l, c2
+                 # c1, c2, eq
+                 # c1, c2
+                 # c1c2
+                 # h(c1c2)
              else:
                  print c1, c2, base64.b64encode(lastHash)
                  raise ValueError()
@@ -317,7 +346,7 @@ def toScript((pl, data, mroot), megaroot):
      script = []
      script = [OP_SHA256]
      script.extend(putStr(hashable(megaroot).hash()))
-     script.extend([OP_EQUALVERIFY])
+     script.extend([OP_EQUALVERIFY, OP_4, OP_TOALTSTACK])
      print b(hashable(c1+c2).hash())
      print b(megaroot)
      return code, script

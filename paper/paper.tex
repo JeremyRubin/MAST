@@ -110,16 +110,18 @@ The consensus protocol to verify valid construction and execution of the will wa
 
 \subsection{Code Compression}
 
-The primary benchmarks used to quantify code compression were a series of python scripts, which can be found in our repo at the location MAST/bin. The file longcode.py (Figure 3) generates a Merkle tree with tens of thousands of branches, yielding a total code length of 2M characters, The post-compression result after applying our algorithms was under 23,500 characters, indicating a compression rate of over 98%. We cannot compare the code compression we saw directly to compressing with another algorithm such as LZW because such algorithms employ frequency based compression and longcode uses repeated segments again and again This is OK to do because we are doing a structural compression. Instead, we compared it to using zip to compress the Linux kernel. This took it from roughly 6115332 characters in length to 1754665 characters, a compression rate of 70%. It is important to note that compression algorithms could also be used in several places in MASTS as well: per code block, and on the complete proof. Additionally, we use an unoptimized message format to send MASTS which is essentially a list of [([subproof],data, mroot) ] which could be further optimized to rely on less punctuation and whitespace and use more efficient character encodings.
+The primary benchmarks used to quantify code compression were a series of python scripts, which can be found in our repo at the location MAST/bin. The file longcode.py (Figure 3, next page) generates a Merkle tree with tens of thousands of branches, yielding a total code length of 2M characters, The post-compression result after applying our algorithms was under 23,500 characters, indicating a compression rate of over 98\%. We cannot compare the code compression we saw directly to compressing with another algorithm such as LZW because such algorithms employ frequency based compression and longcode uses repeated segments again and again This is OK to do because we are doing a structural compression. Instead, we compared it to using zip to compress the Linux kernel. This took it from roughly 6115332 characters in length to 1754665 characters, a compression rate of 70\%. It is important to note that compression algorithms could also be used in several places in MASTS as well: per code block, and on the complete proof. Additionally, we use an unoptimized message format to send MASTS which is essentially a list of $[([subproof],data, mroot) ]$ which could be further optimized to rely on less punctuation and whitespace and use more efficient character encodings.
 
 \begin{figure}[t!]
-	\lstinputlisting[language=Python]{../bin/longcode.py}
+	\lstinputlisting[language=Python, breaklines=true]{../bin/longcode.py}
 	\caption{An example demonstrating code compression on a Merkle tree with millions of characters. Conversion to a MAST representation yielded a compression score of over 98.9\%}
 \end{figure}
 
 \section{Significance and Future Work}
 
 The primary impact of this projects is in its applications to established environments utilizing contracts. The introduction of MASTs has potential to greatly impact existing problems ranging from bitcoin contracts to code transfer between distributed nodes on a network. Potential improvements to this implementation of the MAST could include greater support for distributed construction and execution or the addition of a framework allowing greater extensibility by users of this data structure.
+
+\pagebreak
 
 \bibliographystyle{abbrv}
 \bibliography{paper}

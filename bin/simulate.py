@@ -34,6 +34,16 @@ def mkMerkleWill(alice, bob, carol, debug=True):
     time = will.addBr("if (dt.now() > dt(2013,1,1)) and (signed([%r]) or signed([%r])): ret = Valid(args[-1])"%(bob, carol))
     return will, time, gt20, btwn
 
+def mkMerkleWillForth(alice, bob, carol, debug=True):
+    nbob = normalS(bob)
+    ncarol = normalS(carol)
+    will = mkM(script([OP_2DROP]), debug=True)
+    will.addBr("if (signed([%r], sig)): ret = Valid([args[-1]])"%alice)
+    c = will.addBr("if (signed([%r, %r], sig)):\n"%(bob, carol))
+    btwn = c.addBr("""    ret = Valid([(%r,args[0]), (%r, amt-args[0])]) if (3 < args[0] < 10) else Invalid()"""%(nbob, ncarol))
+    gt20 = c.addBr("""    ret = Valid([(%r, amt/2 + amt%%2),(%r, amt/2)]) if ( 20 < args[0]) else Invalid()"""%(nbob, ncarol))
+    time = will.addBr("if (dt.now() > dt(2013,1,1)) and (signed([%r]) or signed([%r])): ret = Valid(args[-1])"%(bob, carol))
+    return will, time, gt20, btwn
 if __name__ == "__main__":
     """
     #generate will
@@ -81,8 +91,10 @@ def normal(key):
     pause("CONTRACT 2")
     proof2 = gt20.generateFullProofUpward(m.hash())
     parts = toScript(proof2, m.hash())
+    pause("Bitcoin compliant version:", False, False)
+    print parts
+    pause("", True, True)
     print run("".join(map(chr,chain(parts[0],parts[1]))))
-    sys.exit()
     pause('DOING COOL SHIT ^^^', True, True)
 
     print """

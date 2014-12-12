@@ -109,7 +109,6 @@ class InvalidOpcode(Exception):
     def rz(cls, m):
         raise InvalidOpcode(m)
 def verify(stack, inst):
-    import sys
     if stack[-1] == 0:
         sys.exit()
 genHandler = lambda h, bot, top: map(lambda num: (num, h(num)), xrange(bot, top+1))
@@ -239,12 +238,13 @@ def run(s, stack=None, altstack=None):
             ("".join(altstack.pop() for _ in xrange(len(altstack))))
 def handle(h, op, s):
     import base64
-    print "OPCODE", op, "STACK"
-    for i, elem in list(enumerate(s))[::-1]:
-        print "-",i, '%r'%base64.b64encode(str(elem)) if isinstance(elem, str) and  len(elem) in [64,32] else elem
-    print
-    op = h[op]()[-1]
-    handle(h, op,s)
+    while 1:
+        print "STACK"
+        for i, elem in list(enumerate(s))[::-1]:
+            print "-",i, '%r'%base64.b64encode(str(elem)) if isinstance(elem, str) and  len(elem) in [64,32] else elem
+        print
+        print "OPCODE", op
+        op = h[op]()[-1]
 def script(*opcodes):
    return "".join(map(chr, opcodes))
 def toInst(s):

@@ -16,11 +16,16 @@ class ishash:
     def __str__(self):
         return "{hash:%s}"%(self.data)
 def hash(s):
-    return sha256(s).digest().encode('hex')
+    return sha256(s).hexdigest()
 
 def hashArr(arr):
     return hash("".join(map(str, arr)))
 
 def verify(c, h):
     return hash(c) == h
-
+def ripemd160(s):
+    h = hashlib.new('ripemd160')
+    h.update(s)
+    return h.hexdigest()
+def sha1(s):
+    return sha1(s).hexdigest()

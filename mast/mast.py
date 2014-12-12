@@ -284,7 +284,7 @@ def toScript((pl, data, mroot), megaroot):
                  # l, c1, c2, d, c2, h(d)
                  # l, c1, c2, d, eq
                  # l, c1, c2, d
-                 # l, c1, c2
+                 # l, c1, c2, d
              else:
                  print c1, c2, d, hashable(d).hash()
                  raise ValueError()
@@ -314,11 +314,10 @@ def toScript((pl, data, mroot), megaroot):
                  print c1, c2, base64.b64encode(lastHash)
                  raise ValueError()
          lastHash = hashable(c1+c2).hash()
-     #code.extend([ OP_SHA256, OP_CAT])
-     script = [OP_NOP]
-     #script = [OP_SHA256]
-     #script.extend(putStr(megaroot))
-     #script.extend([OP_EQUALVERIFY])
+     script = []
+     script = [OP_SHA256]
+     script.extend(putStr(hashable(megaroot).hash()))
+     script.extend([OP_EQUALVERIFY])
      print b(hashable(c1+c2).hash())
      print b(megaroot)
      return code, script

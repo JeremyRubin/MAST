@@ -207,46 +207,41 @@ class Mast():
                                           , "Children:\n" if self.children else ""
                                           , "\n".join(map(lambda x: "\n    ".join(("    "+str(x)).split('\n')), self.children)))
 
-    #TODO: this will be moved
-    def construct(self, port=8000, host="localhost"):
-        if self.mode == "run":
-            pass    #TODO
-        else:
-            pass    #TODO
-def proveBroken(proofList, data, mroot, debug=False):
-    if debug: print "PROVE", data
-    h = mroot
-    for c1, c2 in proofList[::-1]:
-        newH = crypto.hashable(c1+c2).hash()
-        if h != newH:
-            return False
-        h = newH
-    return data.hash() in proofList[0]
 
 def prove(proofList, data, mroot, debug=False):
-    print "##### Prove Child"
-    print "mr = ", mroot
-    print
+    if debug:
+        print
+        print "---- Prove Root"
+        print "mr = ", mroot
+        print
     lastHash = proofList[0][0]
     dataQ = deque(data)
     for c1, c2 in proofList:
-        print "c1, c2", c1, c2, "nexthash", crypto.hashable(c1+c2)
-        print "lh", lastHash
+        if debug:
+            print "PROVE:", lastHash
+            print "HASHES:", c1, c2
+            print "HASH TO:", crypto.hashable(c1+c2).hash()
+            print
         if lastHash not in [c1,c2]:
             return False
         if dataQ and dataQ[0].hash() in [c1,c2]:
             dataQ.popleft()
         lastHash = crypto.hashable(c1+c2).hash()
-    print "lh = mr", lastHash ==mroot
-    print
+    if debug:
+        print "FINAL HASH:", lastHash, lastHash ==mroot
+        print
     return (not dataQ) and lastHash == mroot
 
 # Given a megaproof from generateFullProofUpward,
 # Verify all of the content is correct and everying can be proved
-def upwardProve((proofList, data, mroot), megaroot):
-    print "###Begin Proof####"
+def upwardProve((proofList, data, mroot), megaroot, debug=False):
+    if debug:
+        print
+        print "##################"
+        print "###Begin Proof####"
+        print "##################"
     # THe map hashable is critical as data gets popped
-    if not prove(proofList, map(hashable,data[:-1]), mroot):
+    if not prove(proofList, map(hashable,data[:-1]), mroot, debug=debug):
         return False
     l = proofList[-1] # TODO is there a reason this can't just go into prove?
     return crypto.hashable(l[0]+l[1]).hash() == megaroot and hashable(data[-1]).hash() in l[-1]

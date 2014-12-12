@@ -83,7 +83,7 @@ class Txn():
         self.amt = amt
         self.args = None
     # run the prelude
-    def execute(self, args):
+    def execute(self, args, debug=False):
         print "ARRRGHS",args
         self.args = copy.deepcopy(args)
         signature  = args.pop()
@@ -93,7 +93,7 @@ class Txn():
             return
         # args[0] - prooflist for mRootHash
         # args[1] - list of branches to Execute
-        ret = merkleVerifyExec(signature, self.mRootHash, args, self.amt) # defines ret when executing, pass all args
+        ret = merkleVerifyExec(signature, self.mRootHash, args, self.amt, debug=debug) # defines ret when executing, pass all args
         if not ret:
             raise ValueError("Invalid ret")
         print ret
@@ -112,12 +112,12 @@ class Txn():
     def __repr__(self):
         return "TXN: {hash:%r, args:%r, amt: %r"%(self.mRootHash, self.args, self.amt)
 
-def merkleVerifyExec(sig, mroot, args, amt):
+def merkleVerifyExec(sig, mroot, args, amt, debug=False):
     pr = args.pop()
     # Set up API
     from datetime import datetime as dt
     signed = lambda key, user_sig: frozenset(list(key)) <= frozenset(list(user_sig)) # test that key is a subset
-    if mast.upwardProve(pr, mroot):
+    if mast.upwardProve(pr, mroot, debug=debug):
         code = "".join(pr[1][::-1])
         try:
             glob = {"signed":signed, "dt":dt, "sig":sig, "args":args, "amt":amt, "Valid":Valid, "Invalid":Invalid}

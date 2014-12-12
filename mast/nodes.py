@@ -37,17 +37,17 @@ class ConsensusNode():
         if not any(c in block for block in self.ledger_copy.ledger):
             self.ledger_copy.add_txn(c)
 
-    def verifyExecTxn(self, c, arglist): # regular hash c
+    def verifyExecTxn(self, c, arglist, debug=False): # regular hash c
         print
         print arglist
-        c.execute(copy.deepcopy(arglist))
+        c.execute(copy.deepcopy(arglist), debug=debug)
         return c.nextTxn().isValid()
 
     # Canonicalize rule, checking TXN's, excluding ones as needed
     # put to local ledger if valid
-    def tick(self):
+    def tick(self, debug=False):
         for c, arglist in self.txn_queue:
-            if self.verifyExecTxn(c, arglist):
+            if self.verifyExecTxn(c, arglist, debug=debug):
                 self.includeTxn(c)
             else:
                 print "invalid argument", c, arglist

@@ -86,6 +86,8 @@ In order to verify the integrity of code, the MAST function \texttt{generateFull
 
 For the verification process, we assume that another machine (without the entire program code) has the Merkle hash of the MAST root node. With a proof list whose destination node is the MAST root hash, this other machine could verify the code in the proof list by iterating over it, summing up the hash values to make sure that they add up to the next hash value in the proof list. If the final summation yields the root hash, then the sequence of hashes provided is correct. Since content hashes get included in the proof list, we can also verify the integrity of the code content itself.
 
+Additionally, scripts can be compiled to a proof that is compatible with opcodes used on the blockchain via a script evaluator that interprets code in the context of bitcoin opcodes. This further augments compatibility between our MAST implementation and the bitcoin protocol and allows for potential future extensibility of this project to be integrated within the blockchain.
+
 \begin{figure}[h]
 	\includegraphics[scale=.35]{mast}
 	\caption{Some examples demonstrating functionalities of  the MAST: the recursive data structure(left) and a proof for a particular branch of execution for a MAST(right)}

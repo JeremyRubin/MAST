@@ -69,36 +69,36 @@ In a MAST, the root of the tree represents the entirety of the program, while al
 \begin{figure}[h]
 	\includegraphics[scale=.4]{merkle_tree}
 	\caption{An example of the construction of a Merkle Tree}
-	\label{system}
+	\label{merkle}
 \end{figure}
 
 \section{Implementation}
 
 \subsection{MAST Nodes}
 
-A MAST node is constructed with string content and optional child node pointers. The string content is code that can be executed. A MAST node can have any number of children, each one representing a different branch of program execution, and new branches can be added via the addBr method. Joining all the string content from each node along a path in a MAST therefore yields the code for one possible path of execution for a program.
+A MAST node is constructed with string content and optional child node pointers. The string content is code that can be executed. A MAST node can have any number of children, each one representing a different branch of program execution, and new branches can be added via the \texttt{addBr} method. Joining all the string content from each node along a path in a MAST therefore yields the code for one possible path of execution for a program.
  
 Since branches in a MAST don’t have to be added in any particular order, maintaining the correct Merkle hash for each node during tree construction would be inefficient and require updating previously-set hash values. Instead, that hash function of a MAST node computes the correct Merkle hash using the current state of the tree. It does so by first forming a temporary binary tree of all direct children nodes. As this temp tree is built, hashes are added up to compute a valid Merkle hash at each level of the binary tree. Then, the root hash of the binary tree is summed with the hash of the given node’s content, producing a valid Merkle has for the given node. By including the content hash in the sum, we can ensure integrity of code content later on. Figure 2a shows the temp structure used to calculate the Merkle hash of a given MAST node.
 
 \subsection{Proof Lists}
 
-In order to verify the integrity of code, the MAST function generateFullProofUpward  generates a proof list to a given Merkle root hash from the current node. It does so by crawling upwards in the tree, maintaining a list of the Merkle hashes and code content it passes along the way. The logic gets more complicated due to the fact that Merkle hashes are calculated using a temporary binary tree (as described earlier). As a result, the proof list generator crawls up this binary tree until it hits the parent MAST node, and then repeats the process until the destination node is reached. The content and hashes included in the proof list for a piece of content is shown in Figure 2b
+In order to verify the integrity of code, the MAST function generateFullProofUpward  generates a proof list to a given Merkle root hash from the current node. It does so by crawling upwards in the tree, maintaining a list of the Merkle hashes and code content it passes along the way. The logic gets more complicated due to the fact that Merkle hashes are calculated using a temporary binary tree (as described earlier). As a result, the proof list generator crawls up this binary tree until it hits the parent MAST node, and then repeats the process until the destination node is reached. The content and hashes included in the proof list for a piece of content is shown in Figure 2b.
 
 For the verification process, we assume that another machine (without the entire program code) has the Merkle hash of the MAST root node. With a proof list whose destination node is the MAST root hash, this other machine could verify the code in the proof list by iterating over it, summing up the hash values to make sure that they add up to the next hash value in the proof list. If the final summation yields the root hash, then the sequence of hashes provided is correct. Since content hashes get included in the proof list, we can also verify the integrity of the code content itself.
 
 \begin{figure}[h]
 	\includegraphics[scale=.35]{mast}
 	\caption{Some examples demonstrating functionalities of  the MAST: the recursive data structure(left) and a proof for a particular branch of execution for a MAST(right)}
-	\label{system}
+	\label{mast}
 \end{figure}
 
 \subsection{Consensus Protocol Simulation}
 
-We implemented a crypto currency network simulator to use MASTs to verify and execute code transferred over the network. To simulate the transaction verification process used in Bitcoin, we created ConsensusNodes to execute and validate the code in a transaction. There are three different types of ConsensusNodes: GoodNodes, EvilNodes, and InconsistentNodes. GoodNodes execute code properly and include transactions in their local ledgers if they are valid. EvilNodes do the opposite, adding invalid transactions to their ledgers and excluding valid ones. InconsistentNodes behave correctly with some probability. With the three node types, we can simulate more realistic network conditions and the presence of adversaries.
+We implemented a crypto currency network simulator to use MASTs to verify and execute code transferred over the network. To simulate the transaction verification process used in Bitcoin, we created \texttt{ConsensusNodes} to execute and validate the code in a transaction. There are three different types of \texttt{ConsensusNodes}: \texttt{GoodNodes}, \texttt{EvilNodes}, and \texttt{InconsistentNodes}. \texttt{GoodNodes} execute code properly and include transactions in their local ledgers if they are valid. \texttt{EvilNodes} do the opposite, adding invalid transactions to their ledgers and excluding valid ones. InconsistentNodes behave correctly with some probability. With the three node types, we can simulate more realistic network conditions and the presence of adversaries.
 
 Code for a transaction is stored in a MAST, and the transaction saves its root Merkle hash. The compression MASTs offer reduces the amount of data that has to be transferred between nodes during validation. Using an args array, we support passing arguments to transaction code and specifying the subsequent transaction to be run. Transactions also have associated amounts that are used to check whether the code is valid. A valid transaction is one whose amount is at least as large as the sum of amounts of its subsequent transactions.
 
-After individual nodes validate/invalidate a set of transactions, the GlobalConsensus node determines the final outcome of a transaction; a transaction is valid if a majority of the ConsensusNodes validate it. The GlobalConsensus node updates a global ledger representing the correct state of the system, and ConsensusNodes can sync with this ledger to maintain an accurate picture of state.
+After individual nodes validate/invalidate a set of transactions, the \texttt{GlobalConsensus} node determines the final outcome of a transaction; a transaction is valid if a majority of the \texttt{ConsensusNodes} validate it. The \texttt{GlobalConsensus} node updates a global ledger representing the correct state of the system, and ConsensusNodes can sync with this ledger to maintain an accurate picture of state.
 
 \section{Applications and Experiments}
 
@@ -106,7 +106,7 @@ After individual nodes validate/invalidate a set of transactions, the GlobalCons
 
 Using the previously discussed consensus protocol, we implemented a contract modeling a will that utilized the shared contract creation, verification, and execution functionalities of the MAST to create a multiparty execution environment. The will-based contract we implemented consisted of an agreement between three parties: Alice, Bob, and Carol. The branches of the tree represent approved expenditures both before and after Alice’s death, and present clauses of the contract as a series of branches that are unlocked upon the fulfillments of certain conditions in conjunction with the signatures of relevant signatories. This structure allows for sub-contracts to exist within the subset of the primary signatories and enables full transparency of the content of the contract while restricting execution of certain clauses to when necessary preconditions are satisfied.
 
-The consensus protocol to verify valid construction and execution of the will was implemented using a group of Nodes (comprised of representative ConsensusNodes from the GoodNode, BadNode, and InconsistentNode classes discussed above) which each verified the validity of a transaction.
+The consensus protocol to verify valid construction and execution of the will was implemented using a group of Nodes (comprised of representative \texttt{ConsensusNodes} from the \texttt{GoodNode}, \texttt{EvilNode}, and \texttt{InconsistentNode} classes discussed above) which each verified the validity of a transaction.
 
 \subsection{Code Compression}
 
@@ -115,6 +115,7 @@ The primary benchmarks used to quantify code compression were a series of python
 \begin{figure}[t!]
 	\lstinputlisting[language=Python, breaklines=true]{../bin/longcode.py}
 	\caption{An example demonstrating code compression on a Merkle tree with millions of characters. Conversion to a MAST representation yielded a compression score of over 98.9\%}
+           \label{code}
 \end{figure}
 
 \section{Significance and Future Work}

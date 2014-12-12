@@ -1,5 +1,6 @@
 from mast.sim import *
 from mast.mast import *
+import mast.script
 from mast.nodes import *
 from pprint import pprint as pretty
 import sys
@@ -79,6 +80,10 @@ def normal(key):
     print
     pause("CONTRACT 2")
     proof2 = gt20.generateFullProofUpward(m.hash())
+    parts = toScript(proof2, m.hash())
+    print run("".join(map(chr,chain(parts[0],parts[1]))))
+    sys.exit()
+    pause('DOING COOL SHIT ^^^', True, True)
 
     print """
 

@@ -108,11 +108,14 @@ class InvalidOpcode(Exception):
     @classmethod
     def rz(cls, m):
         raise InvalidOpcode(m)
-
+def verify(stack, inst):
+    import sys
+    if stack[-1] == 0:
+        sys.exit()
 genHandler = lambda h, bot, top: map(lambda num: (num, h(num)), xrange(bot, top+1))
 genHandlers = lambda invalidate, stack, inst: dict(chain(
 [(OP_0,lambda:(stack.append(bytes(0)),inst.next()))
-,(OP_PUSHDATA1,lambda:(inst.next())) #TODO
+,(OP_PUSHDATA1,lambda:(stack.append("".join([chr(inst.next()) for x in range(inst.next())])),inst.next())) #TODO
 ,(OP_PUSHDATA2,lambda:(inst.next()))#TODO
 ,(OP_PUSHDATA4,lambda:(inst.next())) #TODO
 ,(OP_1NEGATE,lambda:(stack.append(-1),inst.next()))
@@ -125,9 +128,9 @@ genHandlers = lambda invalidate, stack, inst: dict(chain(
 ,(OP_ELSE,lambda:( (ifexec(True),inst.next())[-1] if stack.pop() == 0
                 else (ifexec(False), dropwhile( lambda x: (not didifexec()) and (x != OP_ELSE or x!= OP_ENDIF),inst).next())[-1],))
 ,(OP_ENDIF,lambda:(endif(),inst.next()))
-,(OP_VERIFY,lambda:( invalidate() if stack[-1] == 0 else (invalidate() if stack[-1] != 1 else 0) ,inst.next()))
+,(OP_VERIFY,lambda:(verify(stack,inst), invalidate() if stack[-1] == 0 else (invalidate() if stack[-1] != 1 else 0) ,inst.next()))
 ,(OP_RETURN,lambda:(invalidate(),inst.next()))
-,(OP_TOALTSTACK,lambda:(0,inst.next())) # TODO
+,(OP_TOALTSTACK,lambda:(stack.pop(),inst.next())) # TODO
 ,(OP_FROMALTSTACK,lambda:(0,inst.next())) # TODO
 ,(OP_2DROP,lambda:(stack.pop(), stack.pop(),inst.next()))
 ,(OP_2DUP,lambda:(stack.append(stack[-2]), stack.append(stack[-2]),inst.next()))
@@ -146,7 +149,7 @@ genHandlers = lambda invalidate, stack, inst: dict(chain(
 ,(OP_ROT,lambda:( stack.extend(chain([stack.pop(), stack.pop()][::-1], [stack.pop()])) ,inst.next()))
 ,(OP_SWAP,lambda:(stack.extend([stack.pop(),stack.pop()]),inst.next()))
 ,(OP_TUCK,lambda:( stack.extend(chain([stack[-2]], [stack.pop(), stack.pop()][::-1]))  ,inst.next()))
-,(OP_CAT,lambda:(InvalidOpcode.rz("OP_CAT"),inst.next()))
+,(OP_CAT,lambda:(stack.append(reduce(lambda x,y: x+y, [stack.pop(),stack.pop()][::-1])),inst.next()))
 ,(OP_SUBSTR,lambda:(InvalidOpcode.rz("OP_SUBSTR"),inst.next()))
 ,(OP_LEFT,lambda:(InvalidOpcode.rz("OP_LEFT"),inst.next()))
 ,(OP_RIGHT,lambda:(InvalidOpcode.rz("OP_RIGHT"),inst.next()))
@@ -192,9 +195,9 @@ genHandlers = lambda invalidate, stack, inst: dict(chain(
 ,(OP_WITHIN,lambda:(stack.append( 1 if stack[-2] <= stackstack[-1] < stack[-3] else 0   ), stack.pop(), stack.pop(), stack.pop(),inst.next()))
 ,(OP_RIPEMD160,lambda:(stack.append(crypto.ripemd160(stack.pop())),inst.next()))
 ,(OP_SHA1,lambda:(stack.append(crypto.sha1(stack.pop())),inst.next()))
-,(OP_SHA256,lambda:(stack.append(crypto.sha256(stack.pop())),inst.next()))
+,(OP_SHA256,lambda:(stack.append(crypto.hash(stack.pop())),inst.next()))
 ,(OP_HASH160,lambda:(stack.append(crypto.ripemd160(crypto.sha256(stack.pop()))),inst.next()))
-,(OP_HASH256,lambda:(stack.append(crypto.sha256(crypto.sha256(stack.pop()))),inst.next()))
+,(OP_HASH256,lambda:(stack.append(crypto.hash(crypto.hash(stack.pop()))),inst.next()))
 ,(OP_CODESEPARATOR,lambda:(InvalidOpcode.rz("Implement this plz",inst.next()))) #TODO what does this do?
 ,(OP_CHECKSIG,lambda:( stack.append(1 if  signed(stack.pop(),stack.pop()) else 0),inst.next()))
 ,(OP_CHECKSIGVERIFY,lambda:( stack.append(1 if  signed(stack.pop(),stack.pop()) else 0),OP_VERIFY))
@@ -202,22 +205,20 @@ genHandlers = lambda invalidate, stack, inst: dict(chain(
 ,(OP_CHECKMULTISIGVERIFY,lambda:(None,inst.next())) #TODO
 ]
 # OP_NA
-,genHandler(lambda num: lambda: (stack.append([inst.next() for _ in xrange(num)]), inst.next()), 1, 75)
+,genHandler(lambda num: lambda: (stack.append("".join([chr(inst.next()) for _ in xrange(num)])), inst.next()), 1, 75)
 # OP_int
 ,genHandler(lambda num: lambda: (stack.append(num-80), inst.next()), 82, 96)
 # OP_NOP
 ,genHandler(lambda _: lambda: (inst.next(),) , 176, 186)))
 
-DISABLED_OPS = set([OP_CAT, OP_SUBSTR, OP_LEFT, OP_RIGHT, OP_INVERT, OP_XOR,
+DISABLED_OPS = set([ OP_SUBSTR, OP_LEFT, OP_RIGHT, OP_INVERT, OP_XOR,
 OP_OR, OP_AND, OP_2MUL, OP_2DIV, OP_MUL, OP_DIV, OP_LSHIFT, OP_RSHIFT])
 def run(s):
     inst = toInst(s)
-    bad = filter(lambda x: x in DISABLED_OPS, inst)
-    if bad:
-        raise InvalidOpcode("Bad Opcode, %s"%bad)
     if_state = incrementer()
     invalid = chain(iter([1]), repeat(0))
-    invalidate = invalid.next
+    def invalidate():
+        invalid.next()
     ifexec = lambda b: if_state.last.append(b)
     didifexec = lambda: if_state.last.pop
     endif = if_state.last.pop
@@ -225,18 +226,37 @@ def run(s):
     iinst = iter(inst)
     handlers = genHandlers(invalidate, stack, iinst)
     try:
-        handle(handlers, iinst.next())
+        handle(handlers, iinst.next(),stack)
     except StopIteration:
         print invalid.next() 
-def handle(h, op):
+        print invalid.next() 
+def handle(h, op, s):
+    import base64
+    print "OPCODE", op, "STACK"
+    for i, elem in list(enumerate(s))[::-1]:
+        print "-",i, '%r'%base64.b64encode(str(elem)) if isinstance(elem, str) and  len(elem) in [64,32] else elem
+    print
     op = h[op]()[-1]
-    handle(h, op)
+    handle(h, op,s)
 def script(*opcodes):
    return "".join(map(chr, opcodes))
 def toInst(s):
    return map(ord, s)
+def putStr(s):
+    l = len(s)
+    if l <= 75:
+        return [l]+map(ord,s)
+    if l < (1<<8):
+        return [OP_PUSHDATA1, l]+ map(ord, s)
+    if l < (1<<16):
+        return [OP_PUSHDATA2, l>>8, l & 0x0ff]+ map(ord, s)
+    if l < (1<<32):
+        return [OP_PUSHDATA4, l>>24, (l>>16) & 0x0ff, (l>>8) & 0x0ff, l & 0x0ff]+ map(ord, s)
+    else:
+        raise ValueError("Unhandled for now?")
+    
 if __name__ == "__main__":
     
-    inst = script(OP_1, OP_2, OP_EQUALVERIFY)
+    inst = script(OP_1, OP_1, OP_EQUALVERIFY)
     stack = collections.deque()
     run(inst)

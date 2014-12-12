@@ -7,7 +7,7 @@ import collections
 import crypto
 from pprint import pprint as pretty
 from maybetypes import *
-
+import base64
 #TODO: Nitya
 class Ledger():
     def __init__(self):
@@ -102,7 +102,7 @@ class Txn():
     def nextTxn(self):
         return self._nextTxn
     def __hash__(self):
-        return int(self.mRootHash,36)
+        return int(base64.b16encode(self.mRootHash),36)
     def verify(self, ret):
         def check_pred(pairs):
             total = sum([pair[1] for pair in pairs])

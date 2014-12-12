@@ -1,9 +1,12 @@
 from crypto import *
+import base64
+from script import *
 import crypto
 import io
 from io import *
 from pprint import pprint as pretty
 from collections import deque
+from itertools import *
 def indent(s):
     return "    "+"\n    ".join(s.split('\n'))
 class MerkleNode():
@@ -245,6 +248,82 @@ def upwardProve((proofList, data, mroot), megaroot, debug=False):
         return False
     l = proofList[-1] # TODO is there a reason this can't just go into prove?
     return crypto.hashable(l[0]+l[1]).hash() == megaroot and hashable(data[-1]).hash() in l[-1]
+def toScript((pl, data, mroot), megaroot):
+     dataQ = deque(data[1:])
+     code = putStr(data[0])
+     code.extend([OP_DUP, OP_TOALTSTACK, OP_SHA256, OP_NOP, OP_NOP])
+     lastHash = hashable(data[0]).hash()
+     b = base64.b64encode
+     for i, (c1, c2) in enumerate(pl):
+         h = hashable(dataQ[0]).hash() if dataQ else None
+         print map(base64.b64encode,[c1, c2, lastHash])
+         if dataQ and h in [c1,c2]:
+             d = dataQ.popleft()
+             if hashable(d).hash() == c1:
+                 code.extend(putStr(c1))
+                 code.extend(putStr(d))
+                 code.extend([OP_2DUP, OP_SHA256, OP_EQUALVERIFY, OP_DROP, OP_TOALTSTACK])
+                 code.extend(putStr(c2))
+                 code.extend([OP_ROT, OP_OVER, OP_EQUALVERIFY, OP_DROP, OP_CAT,OP_SHA256]) 
+             elif hashable(d).hash() == c2:
+                 print
+                 print b(c2), b(c1), b(hashable(d).hash())
+                 print
+                 code.extend(putStr(c1))
+                 code.extend([OP_2DUP, OP_EQUALVERIFY, OP_DROP])
+                 code.extend(putStr(c2))
+                 code.extend(putStr(d))
+                 code.extend([OP_2DUP, OP_SHA256, OP_EQUALVERIFY, OP_DROP, OP_TOALTSTACK, OP_CAT,OP_SHA256]) 
+                 # l, c1
+                 # l, c1, l, c1
+                 # l, c1, eq
+                 # l, c1
+                 # l, c1, c2
+                 # l, c1, c2, d
+                 # l, c1, c2, d, c2, d
+                 # l, c1, c2, d, c2, h(d)
+                 # l, c1, c2, d, eq
+                 # l, c1, c2, d
+                 # l, c1, c2
+             else:
+                 print c1, c2, d, hashable(d).hash()
+                 raise ValueError()
+         else:
+             if lastHash == c1:
+                 print
+                 print b(c2), b(c1), b(lastHash)
+                 print
+                 code.extend(putStr(c1))
+                 code.extend([OP_DUP, OP_ROT, OP_EQUALVERIFY, OP_DROP])
+                 code.extend(putStr(c2))
+                 code.extend([OP_CAT,OP_SHA256])
+             elif lastHash == c2:
+                 print
+                 print b(c2), b(c1), b(lastHash)
+                 print
+                 code.extend(putStr(c1))
+                 code.extend(putStr(c2))
+                 code.extend([OP_ROT,OP_OVER, OP_EQUALVERIFY, OP_DROP, OP_CAT,OP_SHA256])
+                 # l
+                 # l, c1
+                 # l, c1, c2
+                 # c1, c2, l
+                 # c1, c2, l, c2
+                 # c1, c2, l, c2
+             else:
+                 print c1, c2, base64.b64encode(lastHash)
+                 raise ValueError()
+         lastHash = hashable(c1+c2).hash()
+     #code.extend([ OP_SHA256, OP_CAT])
+     script = [OP_NOP]
+     #script = [OP_SHA256]
+     #script.extend(putStr(megaroot))
+     #script.extend([OP_EQUALVERIFY])
+     print b(hashable(c1+c2).hash())
+     print b(megaroot)
+     return code, script
+
+
 
 class __Content__():
     """
@@ -287,7 +366,7 @@ class __Content__():
     def hash(self):
         return self._hash
     def __str__(self):
-        return "Hash: %s\nMode:%s\nCode:\n\"\"\"\n%s\n\"\"\""%(self.hash(),self.mode, self.code)
+        return "Hash: %s\nMode:%s\nCode:\n\"\"\"\n%s\n\"\"\""%(self.hash().encode('hex'),self.mode, self.code)
 def testPhase(s):
 
     print "#"*(len(s)+12)

@@ -58,21 +58,27 @@
 \section{Introduction}
 
 In the context of modern cryptosystems, a common theme is the creation of
-distributed trust networks. In most of these designs, permenant storage of a
-contract is required. However, permenant storage can become a major performance
+distributed trust networks. In most of these designs, permanent storage of a
+contract is required. However, permanent storage can become a major performance
 and cost bottleneck. As a result, good code compression schemes are a key
 factor in scaling these contract based cryptosystems. For this project, we
-created a new data structure called the Merkelized Abstract Syntax Tree (MAST)
-to address both data integrity and compression. MASTs can be used to compactly
-represent contractual programs that will be executed remotely, and by using
-some of the properties of Merkle trees, they can also be used to verify the
-integrity of the code being executed. The project idea was developed with
-Bitcoin applications in mind, and the experiment we set up uses MASTs in a
-crypto currency network simulator. Using MASTs in the Bitcoin
-protocol~\cite{bitcoin} would increase the complexity (length) of contracts
-permitted on the network, while simultaneously maintaining the security of
-broadcasted data. Additionally, contracts may contain priviledged, secret
-branches of execution.
+formalize and implement a data structure called the Merkelized Abstract Syntax
+Tree (MAST) to address both data integrity and compression. MASTs can be used
+to compactly represent contractual programs that will be executed remotely, and
+by using some of the properties of Merkle trees, they can also be used to
+verify the integrity of the code being executed. A concept by the same name has
+been discussed in the Bitcoin community for a while, the terminology originates
+from the work of Russel O'Connor and Pieter Wuille, however this discussion was
+limited to private correspondences\footnote{We are thankful to Gregory Maxwell
+    for providing us with accurate historical references. The most significant
+    public discussion was a forum post by Peter Todd\cite{bitcointalk}}.  We present a
+    formalization of it and provide an implementation.The project idea was
+    developed with Bitcoin applications in mind, and the experiment we set up
+    uses MASTs in a crypto currency network simulator. Using MASTs in the
+    Bitcoin protocol~\cite{bitcoin} would increase the complexity (length) of
+    contracts permitted on the network, while simultaneously maintaining the
+    security of broadcasted data.  Additionally, contracts may contain
+    privileged, secret branches of execution.
 
 
 \section{MAST Data Structure}
@@ -96,7 +102,6 @@ represent the execution flow of a program with just a sequence of hashes that
 specify which child edge to follow at each node. Overall, this means that for
 a program of length $n$, a compression to $O(\log{}n)$ could be expected.
 
-\vfill
 
 \begin{figure}[h]
 	\includegraphics[scale=.4]{merkle_tree}
@@ -130,7 +135,6 @@ children branches are placed in a binary tree whose root is the yellow ``Branch
 Merkle Root.'' This Branch Merkle Root hash is summed with the content hash on
 the left to give the Merkle Root.
 
-\vfill
 
 \subsection{Proof Lists}
 
@@ -243,13 +247,14 @@ further optimized to not use punctuation and whitespace, and to use more
 efficient character encodings. Surprisingly, encoding the proof in a bitcoin
 script (ie, self proving) was more efficient than having an external validation
 script.
-
+\vspace{-280pt}
 \begin{figure}[h]
 	\lstinputlisting[language=Python, breaklines=true]{code1.py}
 	\caption{Pseudocode demonstrating code compression on a Merkle tree with millions of characters. Conversion to a MAST representation yielded a compression score of over 90\%}
            \label{code}
 \end{figure}
 
+\pagebreak
 \section{Significance and Future Work}
 
 The primary impact of this project is in its applications to established

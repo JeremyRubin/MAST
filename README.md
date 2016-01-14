@@ -1,4 +1,6 @@
-MAST
-====
+
+Merkelized Abstract Syntax Trees
+
+In the context of modern cryptosystems, a common theme is the creation of distributed trust networks. In most of these designs, permanent storage of a contract is required. How- ever, permanent storage can become a major performance and cost bottleneck. As a result, good code compression schemes are a key factor in scaling these contract based cryptosystems. For this project, we formalize and implement a data structure called the Merkelized Abstract Syntax Tree (MAST) to address both data integrity and compression. MASTs can be used to compactly represent contractual programs that will be executed remotely, and by using some of the properties of Merkle trees, they can also be used to verify the integrity of the code being executed. A concept by the same name has been discussed in the Bitcoin community for a while, the terminology originates from the work of Russel O’Connor and Pieter Wuille, however this discussion was limited to private correspondences1. We present a formalization of it and provide an implementation.The project idea was developed with Bitcoin applications in mind, and the experiment we set up uses MASTs in a crypto currency network simulator. Using MASTs in the Bitcoin protocol would increase the complexity (length) of contracts permitted on the network, while simultaneously maintaining the security of broadcasted data. Additionally, contracts may contain privileged, secret branches of execution.
 
 6.858 final project.
